@@ -69,6 +69,26 @@ A company needs to deploy a Windows server in Azure for hosting internal applica
 - ✅ Configured secure network access
 - ✅ Verified RDP connectivity
 
+## 📸 Screenshots
+
+### Resource Group Created
+![Resource Group](01-resource-group.png)
+
+### Virtual Network and Subnet
+![VNet and Subnet](02-vnet-subnet.png)
+
+### NSG with RDP Rule
+![NSG Rule](03-nsg-rdp-rule.png)
+
+### VM Deployment Complete
+![VM Deployed](04-vm-deployed.png)
+
+### VM Running
+![VM Running](05-vm-running.png)
+
+### Connected via RDP
+![RDP Connected](06-rdp-connected.png)
+
 ## 🔗 Related Certification Topics
 - AZ-104: Deploy and manage Azure compute resources
 - AZ-104: Configure and manage virtual networking
