@@ -83,28 +83,28 @@ A company needs to segment their network for security and management purposes. T
 ## 📸 Screenshots
 
 ### Resource Group
-![Resource Group](./01-resource-group.png)
+![Resource Group](../01-resource-group.png)
 
 ### Hub VNet with Bastion Subnet
-![Hub VNet](./02-hub-vnet.png)
+![Hub VNet](../02-hub-vnet.png)
 
 ### All VNets Created
-![All VNets](./03-all-vnets.png)
+![All VNets](../03-all-vnets.png)
 
 ### VNet Peerings Configured
-![VNet Peerings](./04-vnet-peerings.png)
+![VNet Peerings](../04-vnet-peerings.png)
 
 ### Azure Bastion Deployed
-![Bastion Deployed](./05-bastion-deployed.png)
+![Bastion Deployed](../05-bastion-deployed.png)
 
 ### VMs Running in Spokes
-![VMs Running](./06-vms-running.png)
+![VMs Running](../06-vms-running.png)
 
 ### Connected to App VM via Bastion
-![Bastion App VM](./07-bastion-app-vm.png)
+![Bastion App VM](../07-bastion-app-vm.png)
 
 ### Connected to Web VM via Bastion
-![Bastion Web VM](./08-bastion-web-vm.png)
+![Bastion Web VM](../08-bastion-web-vm.png)
 
 ## 🔗 Related Certification Topics
 - AZ-104: Configure and manage virtual networking
