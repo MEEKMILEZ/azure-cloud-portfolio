@@ -56,4 +56,70 @@ This is where everything comes together. Microsoft Sentinel sits on top of the L
 ## 🔑 Key Learnings
 
 - Security monitoring is a pipeline, not a single tool — each layer builds on the one before it
-- Data Col
+- Data Collection Rules give you granular control over what telemetry gets collected and how often
+- Microsoft Defender for Cloud adds threat detection that goes beyond basic log collection
+- Just-in-Time access is one of the simplest and most effective ways to reduce attack surface
+- Microsoft Sentinel turns raw logs into actionable incidents with automated response capabilities
+- End-to-end automation separates a reactive security posture from a proactive one
+
+## 📊 Results
+
+- ✅ VM deployed and monitored with Data Collection Rules
+- ✅ Log Analytics workspace centralized all telemetry
+- ✅ Microsoft Defender for Servers Plan 2 enabled
+- ✅ Just-in-Time VM access configured and tested
+- ✅ Microsoft Sentinel deployed with data connectors
+- ✅ Analytics rules and automated playbooks operational
+- ✅ Sentinel detected JIT policy deletion automatically
+
+## 📸 Screenshots
+
+### Task 1: VM Deployed
+![VM Created](./01-vm-created.png)
+
+### Task 1: Log Analytics Workspace
+![Log Analytics](./02-log-analytics-workspace.png)
+
+### Task 1: Storage Account
+![Storage Account](./03-storage-account.png)
+
+### Task 1: Data Collection Rule
+![DCR Created](./04-dcr-created.png)
+
+### Task 2: Defender Enabled
+![Defender Enabled](./05-defender-enabled.png)
+
+### Task 3: JIT Access Enabled
+![JIT Enabled](./06-jit-enabled.png)
+
+### Task 3: JIT Access Granted
+![JIT Access Granted](./07-jit-access-granted.png)
+
+### Task 4: Sentinel Added
+![Sentinel Added](./08-sentinel-added.png)
+
+### Task 4: Activity Connector
+![Activity Connector](./09-activity-connector.png)
+
+### Task 4: Analytics Rule
+![Analytics Rule](./10-analytics-rule.png)
+
+### Task 4: Playbook Deployed
+![Playbook Deployed](./11-playbook-deployed.png)
+
+### Task 4: Custom Alert Automation
+![Custom Alert](./12-custom-alert-automation.png)
+
+### Task 4: Incident Detected
+![Incident Created](./13-incident-created.png)
+
+## 🔗 Related Certification Topics
+
+- AZ-500: Manage security operations
+- AZ-500: Configure threat protection
+- AZ-104: Monitor and maintain Azure resources
+- SC-200: Mitigate threats using Microsoft Sentinel
+
+---
+
+**Paschal Nnenna** · Cloud Administrator · [GitHub](https://github.com/MEEKMILEZ) · [LinkedIn](https://linkedin.com/in/paschal-nnenna)
