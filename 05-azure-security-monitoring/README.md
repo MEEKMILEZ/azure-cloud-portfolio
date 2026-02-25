@@ -77,40 +77,40 @@ This is where everything comes together. Microsoft Sentinel sits on top of the L
 ### Task 1: VM Deployed
 ![VM Created](./01-vm-created.png)
 
-### Task 1: Log Analytics Workspace
+### Task 2: Log Analytics Workspace
 ![Log Analytics](./02-log-analytics-workspace.png)
 
-### Task 1: Storage Account
+### Task 3: Storage Account
 ![Storage Account](./03-storage-account.png)
 
-### Task 1: Data Collection Rule
+### Task 4: Data Collection Rule
 ![DCR Created](./04-dcr-created.png)
 
-### Task 2: Defender Enabled
+### Task 5: Defender Enabled
 ![Defender Enabled](./05-defender-enabled.png)
 
-### Task 3: JIT Access Enabled
+### Task 6: JIT Access Enabled
 ![JIT Enabled](./06-jit-enabled.png)
 
-### Task 3: JIT Access Granted
+### Task 7: JIT Access Granted
 ![JIT Access Granted](./07-jit-access-granted.png)
 
-### Task 4: Sentinel Added
+### Task 8: Sentinel Added
 ![Sentinel Added](./08-sentinel-added.png)
 
-### Task 4: Activity Connector
+### Task 9: Activity Connector
 ![Activity Connector](./09-activity-connector.png)
 
-### Task 4: Analytics Rule
+### Task 10: Analytics Rule
 ![Analytics Rule](./10-analytics-rule.png)
 
-### Task 4: Playbook Deployed
+### Task 11: Playbook Deployed
 ![Playbook Deployed](./11-playbook-deployed.png)
 
-### Task 4: Custom Alert Automation
+### Task 12: Custom Alert Automation
 ![Custom Alert](./12-custom-alert-automation.png)
 
-### Task 4: Incident Detected
+### Task 13: Incident Detected
 ![Incident Created](./13-incident-created.png)
 
 ## 🔗 Related Certification Topics
