@@ -29,26 +29,11 @@ The foundation of any security monitoring setup is knowing what's happening on y
 - Provisioned a **storage account** to hold diagnostic data
 - Configured a **Data Collection Rule (DCR)** to collect CPU, memory, disk, and network metrics every 60 seconds
 
-| # | Screenshot | Description |
-|---|-----------|-------------|
-| 1 | ![VM Created](screenshots/01-vm-created.png) | Deployed myVM using PowerShell to be monitored and protected. |
-| 2 | ![Log Analytics](screenshots/02-log-analytics-workspace.png) | Created Log Analytics workspace to centralize log collection. |
-| 3 | ![Storage Account](screenshots/03-storage-account.png) | Created storage account for diagnostic data. |
-| 4 | ![DCR Created](screenshots/04-dcr-created.png) | Created DCR to collect CPU, Memory, Disk, and Network metrics every 60 seconds. |
-
----
-
 ### Lab 09 — Microsoft Defender for Cloud
 
 With telemetry flowing, the next step was enabling advanced threat protection. Microsoft Defender for Servers Plan 2 adds vulnerability assessments, adaptive application controls, and real-time threat detection on top of the monitoring foundation.
 
 - Enabled **Microsoft Defender for Servers Plan 2** for advanced threat protection across the subscription
-
-| # | Screenshot | Description |
-|---|-----------|-------------|
-| 5 | ![Defender Enabled](screenshots/05-defender-enabled.png) | Enabled Microsoft Defender for Servers Plan 2 for advanced threat protection. |
-
----
 
 ### Lab 10 — Just-in-Time VM Access
 
@@ -56,13 +41,6 @@ Leaving management ports open around the clock is one of the most common attack 
 
 - Enabled **Just-in-Time VM access** to reduce the attack surface by locking down management ports
 - Requested and was granted **temporary JIT access** to connect to the VM, demonstrating the approval workflow
-
-| # | Screenshot | Description |
-|---|-----------|-------------|
-| 6 | ![JIT Enabled](screenshots/06-jit-enabled.png) | Enabled Just-in-Time VM access to reduce attack surface. |
-| 7 | ![JIT Access Granted](screenshots/07-jit-access-granted.png) | Requested and granted temporary JIT access to connect to the VM. |
-
----
 
 ### Lab 11 — Microsoft Sentinel (SIEM)
 
@@ -75,25 +53,75 @@ This is where everything comes together. Microsoft Sentinel sits on top of the L
 - Built a **custom alert with automated playbook response** to tie detection to action
 - Validated the pipeline — **Sentinel caught a JIT policy deletion automatically**, confirming that the detection-to-incident workflow is fully operational
 
-| # | Screenshot | Description |
-|---|-----------|-------------|
-| 8 | ![Sentinel Added](screenshots/08-sentinel-added.png) | Added Microsoft Sentinel to the Log Analytics workspace for full SIEM capabilities. |
-| 9 | ![Activity Connector](screenshots/09-activity-connector.png) | Connected Azure Activity data connector to monitor subscription activity. |
-| 10 | ![Analytics Rule](screenshots/10-analytics-rule.png) | Created analytics rule to detect suspicious resource creation. |
-| 11 | ![Playbook Deployed](screenshots/11-playbook-deployed.png) | Deployed playbook to automate incident severity changes. |
-| 12 | ![Custom Alert](screenshots/12-custom-alert-automation.png) | Created custom alert with automated playbook response. |
-| 13 | ![Incident Created](screenshots/13-incident-created.png) | Incident detected — Sentinel caught the JIT policy deletion automatically. |
+## 🔑 Key Learnings
+
+- Security monitoring is a pipeline, not a single tool — each layer builds on the one before it
+- Data Collection Rules give you granular control over what telemetry gets collected and how often
+- Microsoft Defender for Cloud adds threat detection that goes beyond basic log collection
+- Just-in-Time access is one of the simplest and most effective ways to reduce attack surface
+- Microsoft Sentinel turns raw logs into actionable incidents with automated response capabilities
+- End-to-end automation separates a reactive security posture from a proactive one
+
+## 📊 Results
+
+- ✅ VM deployed and monitored with Data Collection Rules
+- ✅ Log Analytics workspace centralized all telemetry
+- ✅ Microsoft Defender for Servers Plan 2 enabled
+- ✅ Just-in-Time VM access configured and tested
+- ✅ Microsoft Sentinel deployed with data connectors
+- ✅ Analytics rules and automated playbooks operational
+- ✅ Sentinel detected JIT policy deletion automatically
+
+## 📸 Screenshots
+
+### Lab 08: VM Deployed
+![VM Created](./01-vm-created.png)
+
+### Lab 08: Log Analytics Workspace
+![Log Analytics](./02-log-analytics-workspace.png)
+
+### Lab 08: Storage Account
+![Storage Account](./03-storage-account.png)
+
+### Lab 08: Data Collection Rule
+![DCR Created](./04-dcr-created.png)
+
+### Lab 09: Defender Enabled
+![Defender Enabled](./05-defender-enabled.png)
+
+### Lab 10: JIT Access Enabled
+![JIT Enabled](./06-jit-enabled.png)
+
+### Lab 10: JIT Access Granted
+![JIT Access Granted](./07-jit-access-granted.png)
+
+### Lab 11: Sentinel Added
+![Sentinel Added](./08-sentinel-added.png)
+
+### Lab 11: Activity Connector
+![Activity Connector](./09-activity-connector.png)
+
+### Lab 11: Analytics Rule
+![Analytics Rule](./10-analytics-rule.png)
+
+### Lab 11: Playbook Deployed
+![Playbook Deployed](./11-playbook-deployed.png)
+
+### Lab 11: Custom Alert Automation
+![Custom Alert](./12-custom-alert-automation.png)
+
+### Lab 11: Incident Detected
+![Incident Created](./13-incident-created.png)
+
+## 🔗 Related Certification Topics
+
+- AZ-500: Manage security operations
+- AZ-500: Configure threat protection
+- AZ-104: Monitor and maintain Azure resources
+- SC-200: Mitigate threats using Microsoft Sentinel
 
 ---
 
-## Technologies Used
-
-Microsoft Azure · Azure Virtual Machines · Log Analytics · Data Collection Rules · Microsoft Defender for Cloud · Just-in-Time VM Access · Microsoft Sentinel · Logic Apps · Azure Activity Connector · KQL (Kusto Query Language)
-
-## Key Takeaways
-
-This project reinforced that security monitoring isn't a single tool — it's a pipeline. Each lab built on the one before it, from basic telemetry collection all the way to automated incident response. The most rewarding part was seeing Sentinel catch the JIT policy deletion in real time without any manual intervention. That's the kind of end-to-end automation that separates a reactive security posture from a proactive one.
-
----
+**Paschal Nnenna** · Cloud Administrator · [GitHub](https://github.com/MEEKMILEZ) · [LinkedIn](https://linkedin.com/in/paschal-nnenna)
 
 **Paschal Nnenna** · Cloud Administrator · [GitHub](https://github.com/MEEKMILEZ) · [LinkedIn](https://linkedin.com/in/paschal-nnenna)
