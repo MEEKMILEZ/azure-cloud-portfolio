@@ -73,11 +73,7 @@ The runbook authenticates with managed identity, discovers all Recovery Services
 
 ![Role Assignments](./07-role-assignments.png)
 
-![Az.Accounts Module](./08a-module-az-accounts.png)
-
-![Az.RecoveryServices Module](./08b-module-az-recoveryservices.png)
-
-![Az.Resources Module](./08c-module-az-resources.png)
+![All Modules Succeeded](./08-modules-succeeded.png)
 
 ![Runbook Published](./09-runbook-published.png)
 
