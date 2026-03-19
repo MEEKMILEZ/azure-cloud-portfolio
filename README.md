@@ -29,4 +29,4 @@ MS-900 Certified | AZ-900 Certified | Preparing for AZ-104 and AWS Cloud Practit
 - LinkedIn: [linkedin.com/in/paschal-nnenna](https://linkedin.com/in/paschal-nnenna)
 - GitHub: [github.com/MEEKMILEZ](https://github.com/MEEKMILEZ)
 - Email: paschalnnennal@hotmail.com
-- 
+  
