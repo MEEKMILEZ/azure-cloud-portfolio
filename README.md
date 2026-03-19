@@ -2,7 +2,7 @@
 
 ## 👋 About Me
 
-Cloud Administrator with hands-on experience in Microsoft Azure and AWS. Currently completing a Postgraduate Certificate in Cloud Computing at George Brown College, Toronto.
+Cloud Administrator with hands-on experience building, securing, and automating infrastructure across Microsoft Azure and AWS. Postgraduate Certificate in Cloud Computing from George Brown College, Toronto.
 
 MS-900 Certified | AZ-900 Certified | Preparing for AZ-104 and AWS Cloud Practitioner
 
@@ -29,3 +29,4 @@ MS-900 Certified | AZ-900 Certified | Preparing for AZ-104 and AWS Cloud Practit
 - LinkedIn: [linkedin.com/in/paschal-nnenna](https://linkedin.com/in/paschal-nnenna)
 - GitHub: [github.com/MEEKMILEZ](https://github.com/MEEKMILEZ)
 - Email: paschalnnennal@hotmail.com
+- 
