@@ -13,12 +13,12 @@ The solution integrates multiple Azure services to provide end-to-end visibility
 Organizations often lack centralized visibility into their cloud environments. Logs are distributed across multiple services, making it difficult to detect threats early or respond efficiently.
 
 Common challenges include:
-- Limited visibility into infrastructure activity  
+- Limited visibility into infrastructure and user activity  
 - Open management ports increasing attack surface  
-- Manual and delayed incident response  
-- Lack of automated threat detection  
+- Delayed or manual incident response  
+- Lack of automated threat detection and alerting  
 
-This project addresses these challenges by building a unified monitoring and response system.
+Without a unified monitoring system, security teams operate reactively instead of proactively.
 
 ---
 
@@ -31,6 +31,8 @@ A layered security monitoring pipeline was designed and implemented using Azure-
 - Reduced attack surface using Just-in-Time (JIT) VM access  
 - SIEM-based detection and incident management using Microsoft Sentinel  
 - Automated incident response using Logic App playbooks  
+
+This architecture enables continuous monitoring, real-time detection, and automated response to security events.
 
 ---
 
@@ -48,27 +50,27 @@ VM telemetry → Data Collection Rule → Log Analytics Workspace → Microsoft 
 
 ## 🔧 Core Implementation
 
-### Monitoring Foundation
+### Monitoring & Telemetry Collection
 - Deployed a virtual machine (**myVM**) as the monitored workload  
 - Created a **Log Analytics Workspace** for centralized log ingestion  
-- Configured a **Data Collection Rule (DCR)** to collect system metrics (CPU, memory, disk, network)  
-- Provisioned a **storage account** for diagnostics  
+- Configured a **Data Collection Rule (DCR)** to collect CPU, memory, disk, and network metrics  
+- Provisioned a **storage account** for diagnostics and log storage  
 
 ### Threat Protection
 - Enabled **Microsoft Defender for Servers Plan 2**  
-- Added vulnerability assessment and real-time threat detection capabilities  
+- Added vulnerability assessment and enhanced threat detection capabilities  
 
 ### Access Control & Hardening
 - Implemented **Just-in-Time (JIT) VM access**  
-- Restricted management ports to reduce attack surface  
-- Validated secure access workflow through temporary access requests  
+- Restricted management ports to minimize attack surface  
+- Validated secure access workflow through time-bound access requests  
 
-### Detection & Response (SIEM)
+### Detection & Automated Response (SIEM)
 - Deployed **Microsoft Sentinel** on top of the Log Analytics workspace  
-- Connected **Azure Activity logs** for subscription-level visibility  
-- Created **analytics rules** to detect suspicious activity  
+- Connected **Azure Activity logs** for subscription-level monitoring  
+- Created **analytics rules** to detect suspicious behavior  
 - Built an **automated playbook (Logic App)** to respond to incidents  
-- Triggered and validated end-to-end detection → incident → response workflow  
+- Validated end-to-end detection → incident creation → automated response workflow  
 
 ---
 
@@ -76,27 +78,27 @@ VM telemetry → Data Collection Rule → Log Analytics Workspace → Microsoft 
 
 - Centralized visibility across infrastructure and activity logs  
 - Reduced attack surface through Just-in-Time access controls  
-- Automated detection of suspicious activity using SIEM rules  
+- Automated detection of suspicious activities using SIEM rules  
 - Faster incident response through Logic App automation  
-- End-to-end security pipeline from telemetry to action  
+- Transition from reactive to proactive security operations  
 
 ---
 
 ## 🔍 Key Learnings
 
-- Security monitoring is a pipeline — not a single tool, but a layered system  
+- Security monitoring is a layered pipeline, not a single tool  
 - Data Collection Rules provide granular control over telemetry ingestion  
 - Microsoft Defender enhances security posture with proactive threat detection  
-- Just-in-Time access is critical for minimizing exposure  
+- Just-in-Time access significantly reduces exposure to attacks  
 - Microsoft Sentinel enables real-time detection and incident management  
-- Automation is essential for moving from reactive to proactive security  
+- Automation is critical for scalable and efficient security operations  
 
 ---
 
 ## 📊 Results
 
-- ✅ VM deployed and fully monitored  
-- ✅ Centralized logging via Log Analytics  
+- ✅ Virtual machine deployed and fully monitored  
+- ✅ Centralized logging via Log Analytics Workspace  
 - ✅ Microsoft Defender for Servers Plan 2 enabled  
 - ✅ Just-in-Time VM access configured and validated  
 - ✅ Microsoft Sentinel deployed with active data connectors  
@@ -107,43 +109,43 @@ VM telemetry → Data Collection Rule → Log Analytics Workspace → Microsoft 
 
 ## 📸 Screenshots
 
-### Task 1: VM Deployed
+### Virtual Machine Deployment
 ![VM Created](./01-vm-created.png)
 
-### Task 2: Log Analytics Workspace
+### Log Analytics Workspace
 ![Log Analytics](./02-log-analytics-workspace.png)
 
-### Task 3: Storage Account
+### Storage Account Configuration
 ![Storage Account](./03-storage-account.png)
 
-### Task 4: Data Collection Rule
+### Data Collection Rule Setup
 ![DCR Created](./04-dcr-created.png)
 
-### Task 5: Defender Enabled
+### Microsoft Defender Enabled
 ![Defender Enabled](./05-defender-enabled.png)
 
-### Task 6: JIT Access Enabled
+### Just-in-Time Access Configuration
 ![JIT Enabled](./06-jit-enabled.png)
 
-### Task 7: JIT Access Granted
+### JIT Access Request Approved
 ![JIT Access Granted](./07-jit-access-granted.png)
 
-### Task 8: Sentinel Added
+### Microsoft Sentinel Deployment
 ![Sentinel Added](./08-sentinel-added.png)
 
-### Task 9: Activity Connector
+### Azure Activity Data Connector
 ![Activity Connector](./09-activity-connector.png)
 
-### Task 10: Analytics Rule
+### Analytics Rule Configuration
 ![Analytics Rule](./10-analytics-rule.png)
 
-### Task 11: Playbook Deployed
+### Automated Playbook Deployment
 ![Playbook Deployed](./11-playbook-deployed.png)
 
-### Task 12: Custom Alert Automation
+### Custom Alert with Automation
 ![Custom Alert](./12-custom-alert-automation.png)
 
-### Task 13: Incident Detected
+### Incident Detection in Sentinel
 ![Incident Created](./13-incident-created.png)
 
 ---
@@ -154,7 +156,4 @@ VM telemetry → Data Collection Rule → Log Analytics Workspace → Microsoft 
 - AZ-500: Configure threat protection  
 - AZ-104: Monitor and maintain Azure resources  
 - SC-200: Mitigate threats using Microsoft Sentinel  
-
----
-
 **Paschal Nnenna** · Cloud Administrator · [GitHub](https://github.com/MEEKMILEZ) · [LinkedIn](https://linkedin.com/in/paschal-nnenna)
