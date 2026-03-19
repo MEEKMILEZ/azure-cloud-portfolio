@@ -1,12 +1,40 @@
-# 05 — Azure Security Monitoring
+# Azure Security Monitoring & SIEM Implementation (Microsoft Sentinel)
 
-## Overview
+## 📋 Overview
 
-This project brings together four interconnected labs to build a complete security monitoring pipeline in Microsoft Azure. Starting with a monitored virtual machine and centralized log collection, it layers on advanced threat protection, just-in-time access controls, and a full SIEM deployment using Microsoft Sentinel. The goal was to simulate what a real-world security operations workflow looks like — from collecting telemetry to detecting incidents and automating responses.
+This project implements a centralized security monitoring and incident response pipeline in Microsoft Azure. It simulates a real-world Security Operations (SOC) workflow by collecting telemetry, detecting suspicious activity, and triggering automated responses.
 
-Every organization needs visibility into what's happening across its infrastructure. This project demonstrates how to build that visibility from the ground up, using the same tools and techniques that cloud security teams rely on every day.
+The solution integrates multiple Azure services to provide end-to-end visibility, threat detection, and response automation across cloud infrastructure.
 
-## Architecture
+---
+
+## 🧩 The Problem
+
+Organizations often lack centralized visibility into their cloud environments. Logs are distributed across multiple services, making it difficult to detect threats early or respond efficiently.
+
+Common challenges include:
+- Limited visibility into infrastructure activity  
+- Open management ports increasing attack surface  
+- Manual and delayed incident response  
+- Lack of automated threat detection  
+
+This project addresses these challenges by building a unified monitoring and response system.
+
+---
+
+## ⚙️ The Solution
+
+A layered security monitoring pipeline was designed and implemented using Azure-native tools:
+
+- Centralized telemetry collection using Log Analytics  
+- Advanced threat protection with Microsoft Defender for Cloud  
+- Reduced attack surface using Just-in-Time (JIT) VM access  
+- SIEM-based detection and incident management using Microsoft Sentinel  
+- Automated incident response using Logic App playbooks  
+
+---
+
+## 🏗️ Architecture
 
 **Resources Deployed:**
 
@@ -18,59 +46,64 @@ VM telemetry → Data Collection Rule → Log Analytics Workspace → Microsoft 
 
 ---
 
-## Task Breakdown
+## 🔧 Core Implementation
 
-### Task 1 — Monitoring Foundation
+### Monitoring Foundation
+- Deployed a virtual machine (**myVM**) as the monitored workload  
+- Created a **Log Analytics Workspace** for centralized log ingestion  
+- Configured a **Data Collection Rule (DCR)** to collect system metrics (CPU, memory, disk, network)  
+- Provisioned a **storage account** for diagnostics  
 
-The foundation of any security monitoring setup is knowing what's happening on your machines. This task focused on deploying the core infrastructure needed to collect and centralize telemetry data.
+### Threat Protection
+- Enabled **Microsoft Defender for Servers Plan 2**  
+- Added vulnerability assessment and real-time threat detection capabilities  
 
-- Deployed **myVM** using PowerShell as the target machine to be monitored and protected
-- Created a **Log Analytics workspace** to serve as the central hub for all log data
-- Provisioned a **storage account** to hold diagnostic data
-- Configured a **Data Collection Rule (DCR)** to collect CPU, memory, disk, and network metrics every 60 seconds
+### Access Control & Hardening
+- Implemented **Just-in-Time (JIT) VM access**  
+- Restricted management ports to reduce attack surface  
+- Validated secure access workflow through temporary access requests  
 
-### Task 2 — Microsoft Defender for Cloud
+### Detection & Response (SIEM)
+- Deployed **Microsoft Sentinel** on top of the Log Analytics workspace  
+- Connected **Azure Activity logs** for subscription-level visibility  
+- Created **analytics rules** to detect suspicious activity  
+- Built an **automated playbook (Logic App)** to respond to incidents  
+- Triggered and validated end-to-end detection → incident → response workflow  
 
-With telemetry flowing, the next step was enabling advanced threat protection. Microsoft Defender for Servers Plan 2 adds vulnerability assessments, adaptive application controls, and real-time threat detection on top of the monitoring foundation.
+---
 
-- Enabled **Microsoft Defender for Servers Plan 2** for advanced threat protection across the subscription
+## 📈 Impact
 
-### Task 3 — Just-in-Time VM Access
+- Centralized visibility across infrastructure and activity logs  
+- Reduced attack surface through Just-in-Time access controls  
+- Automated detection of suspicious activity using SIEM rules  
+- Faster incident response through Logic App automation  
+- End-to-end security pipeline from telemetry to action  
 
-Leaving management ports open around the clock is one of the most common attack vectors in cloud environments. Just-in-Time (JIT) access solves this by keeping ports closed by default and only opening them temporarily when access is explicitly requested and approved.
+---
 
-- Enabled **Just-in-Time VM access** to reduce the attack surface by locking down management ports
-- Requested and was granted **temporary JIT access** to connect to the VM, demonstrating the approval workflow
+## 🔍 Key Learnings
 
-### Task 4 — Microsoft Sentinel (SIEM)
+- Security monitoring is a pipeline — not a single tool, but a layered system  
+- Data Collection Rules provide granular control over telemetry ingestion  
+- Microsoft Defender enhances security posture with proactive threat detection  
+- Just-in-Time access is critical for minimizing exposure  
+- Microsoft Sentinel enables real-time detection and incident management  
+- Automation is essential for moving from reactive to proactive security  
 
-This is where everything comes together. Microsoft Sentinel sits on top of the Log Analytics workspace and turns raw log data into actionable security intelligence. This task covered connecting data sources, creating detection rules, deploying automated response playbooks, and validating that the entire pipeline works end-to-end.
-
-- Added **Microsoft Sentinel** to the Log Analytics workspace for full SIEM capabilities
-- Connected the **Azure Activity data connector** to monitor subscription-level activity
-- Created an **analytics rule** to detect suspicious resource creation events
-- Deployed an **automated playbook** (Logic App) to change incident severity on trigger
-- Built a **custom alert with automated playbook response** to tie detection to action
-- Validated the pipeline — **Sentinel caught a JIT policy deletion automatically**, confirming that the detection-to-incident workflow is fully operational
-
-## 🔑 Key Learnings
-
-- Security monitoring is a pipeline, not a single tool — each layer builds on the one before it
-- Data Collection Rules give you granular control over what telemetry gets collected and how often
-- Microsoft Defender for Cloud adds threat detection that goes beyond basic log collection
-- Just-in-Time access is one of the simplest and most effective ways to reduce attack surface
-- Microsoft Sentinel turns raw logs into actionable incidents with automated response capabilities
-- End-to-end automation separates a reactive security posture from a proactive one
+---
 
 ## 📊 Results
 
-- ✅ VM deployed and monitored with Data Collection Rules
-- ✅ Log Analytics workspace centralized all telemetry
-- ✅ Microsoft Defender for Servers Plan 2 enabled
-- ✅ Just-in-Time VM access configured and tested
-- ✅ Microsoft Sentinel deployed with data connectors
-- ✅ Analytics rules and automated playbooks operational
-- ✅ Sentinel detected JIT policy deletion automatically
+- ✅ VM deployed and fully monitored  
+- ✅ Centralized logging via Log Analytics  
+- ✅ Microsoft Defender for Servers Plan 2 enabled  
+- ✅ Just-in-Time VM access configured and validated  
+- ✅ Microsoft Sentinel deployed with active data connectors  
+- ✅ Analytics rules and automated playbooks operational  
+- ✅ Successful detection of JIT policy deletion event  
+
+---
 
 ## 📸 Screenshots
 
@@ -113,12 +146,14 @@ This is where everything comes together. Microsoft Sentinel sits on top of the L
 ### Task 13: Incident Detected
 ![Incident Created](./13-incident-created.png)
 
+---
+
 ## 🔗 Related Certification Topics
 
-- AZ-500: Manage security operations
-- AZ-500: Configure threat protection
-- AZ-104: Monitor and maintain Azure resources
-- SC-200: Mitigate threats using Microsoft Sentinel
+- AZ-500: Manage security operations  
+- AZ-500: Configure threat protection  
+- AZ-104: Monitor and maintain Azure resources  
+- SC-200: Mitigate threats using Microsoft Sentinel  
 
 ---
 
