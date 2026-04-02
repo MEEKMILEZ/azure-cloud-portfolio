@@ -1,8 +1,8 @@
-# 06 — Automated Backup Verification & Reporting
+ # 06 — Automated Backup Verification & Reporting
 
 ## The Problem
 
-Every morning before the team starts, someone has to log into the Azure portal, navigate to each Recovery Services Vault, check every VM backup job from the last 24 hours, note any failures, and email a status summary to the group. Across our environment, this takes 15\u201330 minutes daily. It's tedious, error-prone, and occasionally gets skipped when the person responsible is out or busy with an incident.
+Every morning before the team starts, someone has to log into the Azure portal, navigate to each Recovery Services Vault, check every VM backup job from the last 24 hours, note any failures, and email a status summary to the group. Across our environment, this takes 15–30 minutes daily. It's tedious, error-prone, and occasionally gets skipped when the person responsible is out or busy with an incident.
 
 A missed backup failure went unnoticed for three days because the admin covering that week forgot to check. When the VM it was protecting had a disk issue, recovery took significantly longer than it should have.
 
@@ -12,7 +12,6 @@ I built an automated pipeline that handles this entire workflow with zero human 
 
 ## Architecture
 
-```
 Recovery Services Vault (VM Backups)
         ↓
 Azure Automation Runbook (PowerShell — scans all vaults, queries backup jobs)
@@ -20,8 +19,6 @@ Azure Automation Runbook (PowerShell — scans all vaults, queries backup jobs)
 Logic App (Scheduled trigger → invokes runbook → sends email notification)
         ↓
 Team Inbox (report delivered before start of business)
-```
-
 The runbook also runs independently on its own schedule at 6:30 AM as a redundancy measure — even if the Logic App has an issue, the scan still executes and logs results.
 
 ## Components
@@ -44,7 +41,7 @@ The runbook also runs independently on its own schedule at 6:30 AM as a redundan
 | Check each VM backup job one by one | PowerShell queries all jobs in 24h window |
 | Note failures in a spreadsheet | Failures flagged in the report output |
 | Compose and send summary email | Logic App triggers and notifies team |
-| 15\u201330 minutes daily per admin | Zero time — fully unattended |
+| 15–30 minutes daily per admin | Zero time — fully unattended |
 | Occasionally missed or forgotten | Runs every day without exception |
 
 ## Implementation
@@ -73,11 +70,7 @@ The runbook authenticates with managed identity, discovers all Recovery Services
 
 ![Role Assignments](./07-role-assignments.png)
 
-![Az.Accounts Module](./08a-module-az-accounts.png)
-
-![Az.RecoveryServices Module](./08b-module-az-recoveryservices.png)
-
-![Az.Resources Module](./08c-module-az-resources.png)
+![All Modules Succeeded](./08-All-Modules-Succeeded.png)
 
 ![Runbook Published](./09-runbook-published.png)
 
@@ -101,12 +94,11 @@ Configured dual schedules for resilience. The runbook runs independently at 6:30
 
 ## Impact
 
-- **Time recovered:** ~2.5 hours per week across the team
-- **Reliability:** 100% daily execution vs. occasional misses under the manual process
-- **Response time:** Backup failures surfaced within hours, not days
-- **Cost:** Under $0.50/month — Automation Account free tier covers job runtime, Logic App consumption plan costs fractions of a cent per execution
-- **Security:** Zero stored credentials — managed identity handles all authentication
-
+**Time recovered:** ~2.5 hours per week across the team
+**Reliability:** 100% daily execution vs. occasional misses under the manual process
+**Response time:** Backup failures surfaced within hours, not days
+**Cost:** Under $0.50/month — Automation Account free tier covers job runtime, Logic App consumption plan costs fractions of a cent per execution
+**Security:** Zero stored credentials — managed identity handles all authentication
 ## Troubleshooting & Lessons Learned
 
 This project involved significant real-world troubleshooting during implementation. Below are the issues encountered and how each was resolved.
