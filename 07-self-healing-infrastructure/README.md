@@ -59,18 +59,15 @@ Infrastructure heals itself automatically
 
 ### Phase 1: Infrastructure as Code (Bicep Deployment)
 
-All infrastructure was deployed from a single Bicep template file (`main.bicep`) instead of manually creating each resource through the portal. The template defines:
+All infrastructure was deployed from a single Bicep template file (main.bicep) instead of manually creating each resource through the portal. The template defines a Virtual Network with one subnet, a Network Security Group with RDP and HTTP rules, a Windows Server 2022 VM, a Storage Account for boot diagnostics, and a Public IP address for remote access.
 
-- Virtual Network with one subnet
-- Network Security Group with RDP and HTTP rules
-- Windows Server 2022 VM (Standard_D2s_v3)
-- Storage Account for boot diagnostics
-- Public IP address for remote access
+![Resource Group Created](01-resource-group-created.png)
 
-Deployment command:
-```powershell
-New-AzResourceGroupDeployment -ResourceGroupName RG-SelfHealing -TemplateFile ./main.bicep -adminPassword (ConvertTo-SecureString "P@ssw0rd2026!" -AsPlainText -Force)
-```
+![Bicep Template in Cloud Shell Editor](02-bicep-template-cloudshell.png)
+
+![Bicep Deployment Succeeded](03-bicep-deployment-succeeded.png)
+
+![All Resources Deployed](04-all-resources-deployed.png)
 
 ### Phase 2: Monitoring and Alert Rules
 
@@ -84,6 +81,16 @@ Three alert rules were configured to watch the VM around the clock:
 
 Each alert is connected to an action group that triggers the appropriate automation runbook and sends an email notification.
 
+![Action Group Created](05-action-group-created.png)
+
+![CPU Alert Rule Created](06-cpu-alert-rule-created.png)
+
+![VM Stopped Alert Created](07-vm-stopped-alert-created.png)
+
+![Disk Alert Created](08-disk-alert-created.png)
+
+![All Alert Rules in Portal](09-all-alert-rules-portal.png)
+
 ### Phase 3: Self-Healing Automation Runbooks
 
 Three PowerShell runbooks handle automated remediation:
@@ -96,31 +103,61 @@ Three PowerShell runbooks handle automated remediation:
 
 All runbooks authenticate using the Automation Account's system-assigned managed identity with Contributor role on the resource group.
 
+![Automation Account Created](10-automation-account-created.png)
+
+![RBAC Role Assigned](11-rbac-role-assigned.png)
+
+![Modules Imported](12-modules-imported.png)
+
+![Restart Runbook Published](13-restart-runbook-published.png)
+
+![ScaleUp Runbook Published](14-scaleup-runbook-published.png)
+
+![Cleanup Runbook Published](15-cleanup-runbook-published.png)
+
+![Alerts Linked to Runbooks](16-alerts-linked-to-runbooks.png)
+
 ### Phase 4: Notification Pipeline
 
 A Logic App (la-selfheal-notify) sends email notifications when alerts fire and remediation actions are taken. The Logic App uses an Office 365 Outlook connector to deliver emails with details about which alert triggered and what action was taken.
 
-The Logic App is linked to the action groups so notifications are sent automatically alongside the runbook execution.
+![Logic App Created](17-logic-app-created.png)
+
+![Logic App Workflow](18-logic-app-workflow.png)
 
 ### Phase 5: Testing
 
 **Test 1: VM Auto-Restart**
-- Manually stopped the VM using `Stop-AzVM`
-- The Activity Log alert detected the VM was deallocated
-- The alert triggered the Restart-VM runbook through the action group
-- The runbook authenticated with managed identity and started the VM
-- VM came back online without any manual intervention
-- Email notification was received confirming the auto-restart
+
+Manually stopped the VM using Stop-AzVM. The Activity Log alert detected the VM was deallocated. The alert triggered the Restart-VM runbook through the action group. The runbook authenticated with managed identity and started the VM. VM came back online without any manual intervention. Email notification was received confirming the auto-restart.
+
+![VM Stopped Manually](19-vm-stopped-manually.png)
+
+![VM Auto-Restarted](20-vm-auto-restarted.png)
+
+![Restart Runbook Output](21-restart-runbook-output.png)
 
 **Test 2: CPU Spike and Auto Scale-Up**
-- Connected to the VM via RDP
-- Ran CPU stress test using PowerShell infinite loops
-- CPU reached 100% utilization
-- After 5 minutes, the CPU alert fired
-- The ScaleUp-VM runbook triggered automatically
-- VM was stopped, resized from D2s_v3 to D4s_v3, and restarted
-- RDP session disconnected during resize (expected behavior)
-- Email notification was received confirming the scale-up
+
+Connected to the VM via RDP and ran CPU stress test using PowerShell infinite loops. CPU reached 100% utilization. After 5 minutes, the CPU alert fired. The ScaleUp-VM runbook triggered automatically. VM was stopped, resized from D2s_v3 to D4s_v3, and restarted.
+
+![CPU Alert Action Groups](22-cpu-alert-action-groups.png)
+
+![CPU Spike Detected](23-cpu-spike-detected.png)
+
+![CPU Alert Fired](24-cpu-alert-fired.png)
+
+![ScaleUp Job Completed](25-scaleup-job-completed.png)
+
+![VM Scaled Up](26-vm-scaled-up.png)
+
+**Automation Job History and Notifications**
+
+![Automation Job History](27-automation-job-history.png)
+
+![Action Group with Logic App](28-action-group-with-logic-app.png)
+
+![Email Notification Received](29-email-notification-received.png)
 
 ## Troubleshooting
 
@@ -143,40 +180,6 @@ The Logic App is linked to the action groups so notifications are sent automatic
 - **Symptom:** Email delivery failed with "A communication failure occurred during the delivery of this message." Outlook mail protection servers rejected the message.
 - **Cause:** The Office 365 Outlook connector's authentication token expired, causing the email to be rejected by Outlook's spam filter.
 - **Fix:** Removed and re-added the Outlook.com connector in the Logic App designer, re-authenticated with fresh credentials, and email delivery worked on all subsequent tests.
-
-## Screenshots
-
-| # | Filename | Description |
-|---|----------|-------------|
-| 01 | 01-resource-group-created.png | RG-SelfHealing resource group created in East US |
-| 02 | 02-bicep-template-cloudshell.png | Bicep template open in Cloud Shell editor |
-| 03 | 03-bicep-deployment-succeeded.png | Bicep deployment completed with ProvisioningState Succeeded |
-| 04 | 04-all-resources-deployed.png | All resources created by the Bicep template |
-| 05 | 05-action-group-created.png | Action group ag-selfheal with email notification |
-| 06 | 06-cpu-alert-rule-created.png | CPU alert rule created for threshold above 85% |
-| 07 | 07-vm-stopped-alert-created.png | Activity Log alert for VM deallocation |
-| 08 | 08-disk-alert-created.png | Disk bandwidth alert rule created for threshold above 90% |
-| 09 | 09-all-alert-rules-portal.png | All three alert rules visible in Azure Monitor |
-| 10 | 10-automation-account-created.png | Automation account aa-selfheal with managed identity |
-| 11 | 11-rbac-role-assigned.png | Contributor role assigned to managed identity |
-| 12 | 12-modules-imported.png | Az.Accounts and Az.Compute modules showing Succeeded |
-| 13 | 13-restart-runbook-published.png | Restart-VM runbook in Published state |
-| 14 | 14-scaleup-runbook-published.png | ScaleUp-VM runbook in Published state |
-| 15 | 15-cleanup-runbook-published.png | Cleanup-Disk runbook in Published state |
-| 16 | 16-alerts-linked-to-runbooks.png | Action group showing runbook action configured |
-| 17 | 17-logic-app-created.png | Logic App la-selfheal-notify created |
-| 18 | 18-logic-app-workflow.png | Logic App designer showing email workflow |
-| 19 | 19-vm-stopped-manually.png | VM in deallocated state after manual stop |
-| 20 | 20-vm-auto-restarted.png | Restart-VM job completed, VM running again |
-| 21 | 21-restart-runbook-output.png | Runbook output showing auto-restart action taken |
-| 22 | 22-cpu-alert-action-groups.png | CPU alert rule with ScaleUp action group attached |
-| 23 | 23-cpu-spike-detected.png | Task Manager showing 100% CPU utilization |
-| 24 | 24-cpu-alert-fired.png | CPU alert fired in Azure Monitor |
-| 25 | 25-scaleup-job-completed.png | ScaleUp-VM job showing Completed status |
-| 26 | 26-vm-scaled-up.png | VM resized from Standard_D2s_v3 to Standard_D4s_v3 |
-| 27 | 27-automation-job-history.png | All automation jobs showing Completed status |
-| 28 | 28-action-group-with-logic-app.png | Action group with both runbook and Logic App actions |
-| 29 | 29-email-notification-received.png | Email notification received after self-healing action |
 
 ## Cost
 
