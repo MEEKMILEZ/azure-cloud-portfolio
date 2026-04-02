@@ -1,32 +1,29 @@
-# Paschal Nnenna — Cloud Portfolio
+# Azure Cloud Portfolio
 
-## 👋 About Me
+Hands-on cloud infrastructure projects built in Microsoft Azure. Each project solves a real-world problem using production-grade services, deployed via Azure Cloud Shell (PowerShell), and documented with architecture diagrams, screenshots, and troubleshooting notes.
 
-Cloud Administrator with hands-on experience building, securing, and automating infrastructure across Microsoft Azure and AWS. Postgraduate Certificate in Cloud Computing from George Brown College, Toronto.
+## Certifications
 
-MS-900 Certified | AZ-900 Certified | Preparing for AZ-104 and AWS Cloud Practitioner
+- MS-900: Microsoft 365 Fundamentals -- Certified
+- AZ-900: Azure Fundamentals -- Certified
+- AZ-104: Azure Administrator Associate -- In Progress
+- AWS Cloud Practitioner -- In Progress
 
-## 🛠️ Projects
+## Projects
 
-| # | Project | Description | Technologies |
+| # | Project | What It Does | Technologies |
 |---|---------|-------------|--------------|
-| 01 | [Azure VM Deployment](./01-azure-vm-deployment) | Deploy Windows and Linux VMs using ARM templates and PowerShell | Azure VMs, ARM, PowerShell |
-| 02 | [Hub-Spoke Network](./02-hub-spoke-network) | Build a hub-spoke network topology with peering and secure access | VNets, Peering, NSGs, Bastion |
-| 03 | [Azure Firewall & Network Security](./03-azure-firewall) | Deploy Azure Firewall with UDRs and application/network rules | Azure Firewall, NSGs, UDRs |
-| 04 | [Service Endpoints & Storage Security](./04-service-endpoints-storage) | Secure storage accounts with service endpoints and firewall rules | Service Endpoints, Storage Firewalls, NSGs |
-| 05 | [Azure Security Monitoring & Sentinel](./05-azure-security-monitoring) | Build security monitoring pipeline with automated incident response | Sentinel, Defender, Log Analytics, JIT, Logic Apps |
-| 06 | [Automated Backup Verification & Reporting](./06-automated-backup-verification) | Automate daily backup status checks and email reporting | Azure Automation, PowerShell, Logic Apps, Managed Identity |
+| 01 | [Azure VM Deployment](./01-azure-vm-deployment) | Deployed and configured Windows VMs with networking, NSGs, and remote access | Azure VMs, VNets, NSGs, Bastion, PowerShell |
+| 02 | [Hub-Spoke Network](./02-hub-spoke-network) | Built a hub-spoke network topology with VNet peering, Bastion, and segmented subnets | VNet Peering, Bastion, NSGs, Route Tables |
+| 03 | [Azure Firewall](./03-azure-firewall) | Configured Azure Firewall with application and network rules for centralized traffic control | Azure Firewall, UDRs, NAT Rules, Threat Intelligence |
+| 04 | [Service Endpoints and Storage](./04-service-endpoints-storage) | Secured storage account access using service endpoints and VNet rules | Service Endpoints, Storage Accounts, VNet Rules |
+| 05 | [Azure Security Monitoring and Microsoft Sentinel SIEM](./05-azure-security-monitoring) | Deployed Microsoft Sentinel with automated incident response and threat detection | Microsoft Sentinel, Defender for Cloud, Logic Apps, JIT VM Access |
+| 06 | [Automated Backup Verification and Reporting](./06-automated-backup-verification) | Built automated backup monitoring that scans all vaults daily and emails a status report | Azure Automation, Recovery Services Vault, Logic Apps, Managed Identity, REST API |
+| 07 | [Self-Healing Infrastructure with IaC](./07-self-healing-infrastructure) | Deployed entire environment from Bicep, with automated monitoring, self-healing runbooks, and email notifications | Azure Bicep, Automation Runbooks, Azure Monitor, Logic Apps, Managed Identity |
 
-## 📜 Certifications
+## About
 
-- ✅ MS-900: Microsoft 365 Fundamentals
-- ✅ AZ-900: Azure Fundamentals
-- 🔄 AZ-104: Azure Administrator Associate (In Progress)
-- 🔄 AWS Cloud Practitioner (In Progress)
-
-## 📫 Connect With Me
+Built by Paschal Nnenna. Cloud Administrator based in Toronto with hands-on experience in Azure infrastructure, automation, security, and monitoring.
 
 - LinkedIn: [linkedin.com/in/paschal-nnenna](https://linkedin.com/in/paschal-nnenna)
 - GitHub: [github.com/MEEKMILEZ](https://github.com/MEEKMILEZ)
-- Email: paschalnnennal@hotmail.com
-  
