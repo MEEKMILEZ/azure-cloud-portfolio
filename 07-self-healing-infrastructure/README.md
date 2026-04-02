@@ -1,4 +1,4 @@
-# 07 — Self-Healing Infrastructure with Infrastructure as Code
+# Self-Healing Cloud Infrastructure on Azure (Auto-Remediation System)
 
 ## The Problem
 
