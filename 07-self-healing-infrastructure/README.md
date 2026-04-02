@@ -1,195 +1,169 @@
-# Project 7: Self-Healing Infrastructure with Infrastructure as Code
+# 07 — Self-Healing Infrastructure with Infrastructure as Code
 
-## Overview
+## The Problem
 
-This project deploys a complete Azure environment from a single Bicep template, sets up real-time monitoring with alert rules, and implements automated remediation runbooks that detect and fix infrastructure problems without human intervention. When a VM goes down, the system restarts it. When CPU spikes, the system scales the VM to a larger size. The entire workflow runs automatically: detect the problem, fix it, and notify the admin by email.
+When a VM crashes, runs out of CPU, or fills its disk in our environment, nobody knows until a user complains or someone happens to check the portal. The admin then has to manually log in, diagnose the issue, restart or resize the VM, and send an update to the team. If it happens at 2 AM or over a weekend, the system stays broken until someone notices. There is no automated detection, no automated fix, and no automated notification.
+
+On top of that, every resource in the environment was created manually through the portal. There is no record of what was deployed or how it was configured. If something breaks badly enough that it needs to be rebuilt, the admin has to remember every setting and recreate it by hand.
+
+## The Solution
+
+I built a self-healing infrastructure system that deploys the entire environment from a single code file (Bicep template), monitors it in real time, automatically fixes problems when they happen, and sends an email to the team when a fix is applied. No human intervention required.
 
 ## Architecture
 
 ```
 Bicep Template (Infrastructure as Code)
-    |
-    v deploys
-VNet + NSG + VM + Storage Account + Public IP
-    |
-    v emits metrics
+        ↓
+Deployed Infrastructure (VNet, NSG, VM, Storage, Public IP)
+        ↓
 Azure Monitor + Alert Rules (CPU > 85%, VM stopped, Disk > 90%)
-    |
-    v triggers
+        ↓
 Automation Runbooks (auto-restart VM, scale up VM, disk cleanup)
-    |
-    v notifies
-Logic App --> Email Notification (alert fired, fix applied, status update)
-    |
-    v fixes
-Infrastructure heals itself automatically
+        ↓
+Logic App → Email Notification (alert fired, fix applied, team notified)
 ```
 
-## Technologies Used
+## Components
 
-- Azure Bicep (Infrastructure as Code)
-- Azure Automation (PowerShell Runbooks)
-- Azure Monitor (Metric Alerts, Activity Log Alerts)
-- Azure Logic Apps (Email Notification Workflow)
-- Managed Identity (Credential-free Authentication)
-- Azure RBAC (Role-Based Access Control)
-- Azure Cloud Shell (PowerShell Deployment)
+| Resource | Name | Purpose |
+|---|---|---|
+| Resource Group | RG-SelfHealing | Contains all project resources |
+| Virtual Network | vnet-selfheal | Network with one subnet and NSG |
+| Virtual Machine | vm-workload | Windows Server 2022 workload being monitored |
+| Storage Account | stgselfheal[unique] | Boot diagnostics storage |
+| Automation Account | aa-selfheal | Hosts PowerShell runbooks with managed identity |
+| Runbook | Restart-VM | Detects stopped VM and starts it automatically |
+| Runbook | ScaleUp-VM | Resizes VM from D2s_v3 to D4s_v3 under high CPU |
+| Runbook | Cleanup-Disk | Clears temp files when disk usage is high |
+| Logic App | la-selfheal-notify | Sends email notification after remediation |
+| Action Groups | ag-selfheal, ag-scaleup | Links alerts to runbooks and notifications |
 
-## Resource Naming
+## What This Automates
 
-| Resource | Name |
-|----------|------|
-| Resource Group | RG-SelfHealing |
-| Virtual Network | vnet-selfheal |
-| Subnet | subnet-workload |
-| NSG | nsg-workload |
-| VM | vm-workload |
-| Public IP | pip-workload |
-| Storage Account | stgselfheal[unique] |
-| Automation Account | aa-selfheal |
-| Logic App | la-selfheal-notify |
-| Action Groups | ag-selfheal, ag-scaleup |
+| Manual Process | Automated Solution |
+|---|---|
+| Check if VMs are running manually | Alert detects VM stopped, runbook restarts it |
+| Monitor CPU usage in the portal | Alert fires at 85%, runbook scales VM up |
+| Log in to clean up disk space | Runbook clears temp files via remote command |
+| Email the team about what happened | Logic App sends notification automatically |
+| Rebuild environment from memory | Bicep template redeploys everything from code |
 
-## Deployment
+## Implementation
 
-**Region:** East US  
-**Subscription:** Pay-As-You-Go  
-**Deployment Method:** Azure Cloud Shell (PowerShell)  
-**VM Size:** Standard_D2s_v3 (scales to D4s_v3 automatically)
+### Phase 1 — Infrastructure as Code (Bicep Deployment)
 
-### Phase 1: Infrastructure as Code (Bicep Deployment)
+Deployed all resources from a single Bicep template file (main.bicep) via Azure Cloud Shell. The template defines the VNet, subnet, NSG with RDP and HTTP rules, Windows Server 2022 VM (Standard_D2s_v3), storage account, and public IP. One command deploys the entire environment.
 
-All infrastructure was deployed from a single Bicep template file (main.bicep) instead of manually creating each resource through the portal. The template defines a Virtual Network with one subnet, a Network Security Group with RDP and HTTP rules, a Windows Server 2022 VM, a Storage Account for boot diagnostics, and a Public IP address for remote access.
+![Resource Group Created](./01-resource-group-created.png)
 
-![Resource Group Created](01-resource-group-created.png)
+![Bicep Template in Cloud Shell Editor](./02-bicep-template-cloudshell.png)
 
-![Bicep Template in Cloud Shell Editor](02-bicep-template-cloudshell.png)
+![Bicep Deployment Succeeded](./03-bicep-deployment-succeeded.png)
 
-![Bicep Deployment Succeeded](03-bicep-deployment-succeeded.png)
+![All Resources Deployed](./04-all-resources-deployed.png)
 
-![All Resources Deployed](04-all-resources-deployed.png)
+### Phase 2 — Monitoring and Alert Rules
 
-### Phase 2: Monitoring and Alert Rules
+Created an action group with email notification, then configured three alert rules to watch the VM continuously. The CPU alert fires when average usage exceeds 85% for 5 minutes. The VM stopped alert fires when the VM is deallocated. The disk alert fires when OS disk bandwidth consumption exceeds 90%.
 
-Three alert rules were configured to watch the VM around the clock:
+![Action Group Created](./05-action-group-created.png)
 
-| Alert Rule | Type | Trigger Condition |
-|------------|------|-------------------|
-| alert-high-cpu | Metric Alert | Average CPU > 85% for 5 minutes |
-| alert-vm-stopped | Activity Log Alert | VM deallocated or stopped |
-| alert-high-disk | Metric Alert | OS Disk Bandwidth > 90% for 5 minutes |
+![CPU Alert Rule Created](./06-cpu-alert-rule-created.png)
 
-Each alert is connected to an action group that triggers the appropriate automation runbook and sends an email notification.
+![VM Stopped Alert Created](./07-vm-stopped-alert-created.png)
 
-![Action Group Created](05-action-group-created.png)
+![Disk Alert Created](./08-disk-alert-created.png)
 
-![CPU Alert Rule Created](06-cpu-alert-rule-created.png)
+![All Alert Rules in Portal](./09-all-alert-rules-portal.png)
 
-![VM Stopped Alert Created](07-vm-stopped-alert-created.png)
+### Phase 3 — Self-Healing Automation Runbooks
 
-![Disk Alert Created](08-disk-alert-created.png)
+Created the Automation Account with system-assigned managed identity and Contributor role on the resource group. Imported Az.Accounts (v3.0.5) and Az.Compute (v8.3.0) with version pinning based on lessons learned from Project 6.
 
-![All Alert Rules in Portal](09-all-alert-rules-portal.png)
+Three runbooks handle automated remediation. Restart-VM checks the VM power state and starts it if stopped. ScaleUp-VM stops the VM, resizes it from D2s_v3 to D4s_v3, and restarts it. Cleanup-Disk runs remote cleanup commands on the VM and reports recovered space.
 
-### Phase 3: Self-Healing Automation Runbooks
+Each runbook is linked to its corresponding alert through the action groups so remediation triggers automatically when an alert fires.
 
-Three PowerShell runbooks handle automated remediation:
+![Automation Account Created](./10-automation-account-created.png)
 
-**Restart-VM:** Checks if the VM is stopped and starts it back up automatically. Uses managed identity for authentication so no credentials are stored in the script.
+![RBAC Role Assigned](./11-rbac-role-assigned.png)
 
-**ScaleUp-VM:** Checks the current VM size and upgrades it from Standard_D2s_v3 to Standard_D4s_v3 when CPU is consistently high. Stops the VM, resizes it, and starts it again.
+![Modules Imported](./12-modules-imported.png)
 
-**Cleanup-Disk:** Runs disk cleanup commands on the VM using Invoke-AzVMRunCommand. Clears temp files and reports free space recovered.
+![Restart Runbook Published](./13-restart-runbook-published.png)
 
-All runbooks authenticate using the Automation Account's system-assigned managed identity with Contributor role on the resource group.
+![ScaleUp Runbook Published](./14-scaleup-runbook-published.png)
 
-![Automation Account Created](10-automation-account-created.png)
+![Cleanup Runbook Published](./15-cleanup-runbook-published.png)
 
-![RBAC Role Assigned](11-rbac-role-assigned.png)
+![Alerts Linked to Runbooks](./16-alerts-linked-to-runbooks.png)
 
-![Modules Imported](12-modules-imported.png)
+### Phase 4 — Notification Pipeline
 
-![Restart Runbook Published](13-restart-runbook-published.png)
+Created a Logic App with an HTTP trigger and Office 365 Outlook connector. The Logic App is added to the action group so it fires alongside the runbook when an alert triggers. The email includes details about which alert fired and that remediation was executed.
 
-![ScaleUp Runbook Published](14-scaleup-runbook-published.png)
+![Logic App Created](./17-logic-app-created.png)
 
-![Cleanup Runbook Published](15-cleanup-runbook-published.png)
+![Logic App Workflow](./18-logic-app-workflow.png)
 
-![Alerts Linked to Runbooks](16-alerts-linked-to-runbooks.png)
-
-### Phase 4: Notification Pipeline
-
-A Logic App (la-selfheal-notify) sends email notifications when alerts fire and remediation actions are taken. The Logic App uses an Office 365 Outlook connector to deliver emails with details about which alert triggered and what action was taken.
-
-![Logic App Created](17-logic-app-created.png)
-
-![Logic App Workflow](18-logic-app-workflow.png)
-
-### Phase 5: Testing
+### Phase 5 — Testing
 
 **Test 1: VM Auto-Restart**
 
-Manually stopped the VM using Stop-AzVM. The Activity Log alert detected the VM was deallocated. The alert triggered the Restart-VM runbook through the action group. The runbook authenticated with managed identity and started the VM. VM came back online without any manual intervention. Email notification was received confirming the auto-restart.
+Stopped the VM manually using Stop-AzVM. The Activity Log alert detected the deallocation, triggered the Restart-VM runbook through the action group, and the VM came back online without any manual intervention. Email notification was received confirming the fix.
 
-![VM Stopped Manually](19-vm-stopped-manually.png)
+![VM Stopped Manually](./19-vm-stopped-manually.png)
 
-![VM Auto-Restarted](20-vm-auto-restarted.png)
+![VM Auto-Restarted — Job Completed](./20-vm-auto-restarted.png)
 
-![Restart Runbook Output](21-restart-runbook-output.png)
+![Restart Runbook Output](./21-restart-runbook-output.png)
 
 **Test 2: CPU Spike and Auto Scale-Up**
 
-Connected to the VM via RDP and ran CPU stress test using PowerShell infinite loops. CPU reached 100% utilization. After 5 minutes, the CPU alert fired. The ScaleUp-VM runbook triggered automatically. VM was stopped, resized from D2s_v3 to D4s_v3, and restarted.
+Connected to the VM via RDP and ran PowerShell stress loops to push CPU to 100%. After 5 minutes the CPU alert fired, the ScaleUp-VM runbook triggered automatically, and the VM was resized from D2s_v3 to D4s_v3. The RDP session disconnected during resize which is expected.
 
-![CPU Alert Action Groups](22-cpu-alert-action-groups.png)
+![CPU Alert Action Groups](./22-cpu-alert-action-groups.png)
 
-![CPU Spike Detected](23-cpu-spike-detected.png)
+![CPU Spike at 100%](./23-cpu-spike-detected.png)
 
-![CPU Alert Fired](24-cpu-alert-fired.png)
+![CPU Alert Fired](./24-cpu-alert-fired.png)
 
-![ScaleUp Job Completed](25-scaleup-job-completed.png)
+![ScaleUp Job Completed](./25-scaleup-job-completed.png)
 
-![VM Scaled Up](26-vm-scaled-up.png)
+![VM Scaled Up to D4s_v3](./26-vm-scaled-up.png)
 
-**Automation Job History and Notifications**
+**Job History and Email Confirmation**
 
-![Automation Job History](27-automation-job-history.png)
+![Automation Job History — All Completed](./27-automation-job-history.png)
 
-![Action Group with Logic App](28-action-group-with-logic-app.png)
+![Action Group with Logic App](./28-action-group-with-logic-app.png)
 
-![Email Notification Received](29-email-notification-received.png)
+![Email Notification Received](./29-email-notification-received.png)
 
-## Troubleshooting
+## Impact
 
-### Issue 1: microsoft.insights namespace not registered
-- **Symptom:** Portal returned an error saying the subscription is not registered to use the namespace when creating an action group.
-- **Cause:** The microsoft.insights resource provider was not registered in the subscription. This provider is required for Azure Monitor features like action groups, alert rules, and diagnostic settings.
-- **Fix:** Ran `Register-AzResourceProvider -ProviderNamespace microsoft.insights` in Cloud Shell, waited for registration to complete, then retried successfully.
+- **Response time:** Problems detected and fixed in minutes instead of hours or days
+- **Availability:** VM auto-restarts without waiting for an admin to notice
+- **Scalability:** VM automatically upgrades when CPU is consistently overloaded
+- **Repeatability:** Entire environment can be redeployed from one Bicep file in under 5 minutes
+- **Cost:** Under $5 total for deployment, testing, and teardown
+- **Security:** Zero stored credentials — managed identity handles all authentication
 
-### Issue 2: Metric name "OS Disk Used Bytes" does not exist
-- **Symptom:** Error "Couldn't find a metric named OS Disk Used Bytes" when creating the disk alert rule.
-- **Cause:** Azure VMs do not expose a direct disk space usage metric. The available disk metrics are based on bandwidth, IOPS, and queue depth.
-- **Fix:** Used `Get-AzMetricDefinition` to list all available metrics for the VM, then selected "OS Disk Bandwidth Consumed Percentage" with a 90% threshold as the closest alternative.
+## Troubleshooting & Lessons Learned
 
-### Issue 3: Runbook jobs failed with "job definition was empty"
-- **Symptom:** The Restart-VM runbook was triggered by the alert but failed immediately with "job definition was empty."
-- **Cause:** The runbook script content was not saved properly when using `Out-File` in Cloud Shell. The file encoding was incompatible with Azure Automation.
-- **Fix:** Re-created the script file using `Set-Content` with `-Encoding UTF8` and re-imported the runbook with the `-Published` flag. All subsequent jobs completed successfully.
+### microsoft.insights Namespace Not Registered
+When creating the first action group, the portal returned an error saying the subscription was not registered for the microsoft.insights namespace. This provider is required for all Azure Monitor features including action groups, alert rules, and diagnostic settings. Resolved by running `Register-AzResourceProvider -ProviderNamespace microsoft.insights` in Cloud Shell and waiting for registration to complete.
 
-### Issue 4: Logic App email delivery failed to Hotmail/Outlook
-- **Symptom:** Email delivery failed with "A communication failure occurred during the delivery of this message." Outlook mail protection servers rejected the message.
-- **Cause:** The Office 365 Outlook connector's authentication token expired, causing the email to be rejected by Outlook's spam filter.
-- **Fix:** Removed and re-added the Outlook.com connector in the Logic App designer, re-authenticated with fresh credentials, and email delivery worked on all subsequent tests.
+### Metric Name "OS Disk Used Bytes" Does Not Exist
+The disk alert rule failed with "Couldn't find a metric named OS Disk Used Bytes." Azure VMs do not expose a direct disk space percentage metric. The available disk metrics are bandwidth, IOPS, and queue depth based. Resolved by using `Get-AzMetricDefinition` to list all available VM metrics, then selecting "OS Disk Bandwidth Consumed Percentage" with a 90% threshold.
 
-## Cost
+### Runbook Jobs Failed With "Job Definition Was Empty"
+The Restart-VM runbook was triggered by the alert but failed immediately with "job definition was empty." The runbook script content was not saved properly when using `Out-File` in Cloud Shell due to incompatible file encoding. Resolved by re-creating the script using `Set-Content` with `-Encoding UTF8` and re-importing with the `-Published` flag. All subsequent jobs completed successfully.
 
-- VM (Standard_D2s_v3): approximately $2-3 for a few hours of runtime
-- Storage Account: minimal (pennies)
-- Automation Account and Logic App: free tier
-- Total project cost: under $5
+### Logic App Email Delivery Rejected by Outlook
+Email delivery failed with "A communication failure occurred during the delivery of this message." Outlook's mail protection servers rejected the message because the Office 365 connector's authentication token had expired. Resolved by removing and re-adding the Outlook.com connector in the Logic App designer with fresh credentials. All subsequent emails delivered successfully.
 
-## Cleanup
+## Technologies Used
 
-```powershell
-Remove-AzResourceGroup -Name RG-SelfHealing -Force
-```
+Azure Bicep, Azure Automation, PowerShell, Azure Monitor, Alert Rules, Azure Logic Apps, Managed Identity, Azure RBAC, Azure Cloud Shell, Office 365 Outlook Connector
