@@ -1,6 +1,6 @@
 # Azure Cloud Portfolio
 
-Hands-on cloud infrastructure projects built in Microsoft Azure. Each project solves a real-world problem using production-grade services, deployed via Azure Cloud Shell (PowerShell), and documented with architecture diagrams, screenshots, and troubleshooting notes.
+Hands-on cloud infrastructure projects built in Microsoft Azure. Each project solves a real-world problem using production-grade services, deployed via Azure Cloud Shell and Terraform, and documented with architecture diagrams, screenshots, and troubleshooting notes.
 
 ## Certifications
 
@@ -20,10 +20,11 @@ Hands-on cloud infrastructure projects built in Microsoft Azure. Each project so
 | 05 | [Azure Security Monitoring and Microsoft Sentinel SIEM](./05-azure-security-monitoring) | Deployed Microsoft Sentinel with automated incident response and threat detection | Microsoft Sentinel, Defender for Cloud, Logic Apps, JIT VM Access |
 | 06 | [Automated Backup Verification and Reporting](./06-automated-backup-verification) | Built automated backup monitoring that scans all vaults daily and emails a status report | Azure Automation, Recovery Services Vault, Logic Apps, Managed Identity, REST API |
 | 07 | [Self-Healing Infrastructure with IaC](./07-self-healing-infrastructure) | Deployed entire environment from Bicep, with automated monitoring, self-healing runbooks, and email notifications | Azure Bicep, Automation Runbooks, Azure Monitor, Logic Apps, Managed Identity |
+| 08 | [Cloud Cost Watchdog](./08-cloud-cost-watchdog) | Automated zombie resource detection and cost optimization across the entire subscription | Terraform, Azure Automation, REST API, Logic Apps, Managed Identity, FinOps |
 
 ## About
 
-Built by Paschal Nnenna. Cloud Administrator based in Toronto with hands-on experience in Azure infrastructure, automation, security, and monitoring.
+Built by Paschal Nnenna. Cloud Administrator based in Toronto with hands-on experience in Azure infrastructure, automation, security, monitoring, and cost optimization.
 
 - LinkedIn: [linkedin.com/in/paschal-nnenna](https://linkedin.com/in/paschal-nnenna)
 - GitHub: [github.com/MEEKMILEZ](https://github.com/MEEKMILEZ)
