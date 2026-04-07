@@ -52,7 +52,7 @@ I built an automated cost watchdog that scans the entire Azure subscription dail
 To demonstrate the scanner against real resources, I intentionally deployed eight zombie resources across the subscription simulating what a real environment looks like after months of neglect: orphaned disks left behind after VM deletion, public IPs that were allocated but never assigned, a network interface not attached to any VM, a network security group not associated with any subnet, and two empty resource groups from abandoned projects.
 
 ![Resource Groups](./01-resource-group-created.png)
-*All three resource groups visible in the portal including two empty groups simulating abandoned projects.*
+*Resource groups created via PowerShell including RG-CostWatchdog and two empty groups simulating abandoned projects.*
 
 ![Zombie Resources](./02-zombie-resources-created.png)
 *RG-CostWatchdog resources view showing orphaned disks, unattached public IPs, unused NIC, leftover VNet, and unassociated NSG.*
