@@ -66,10 +66,10 @@ The managed identity is assigned Reader at subscription scope so the runbook can
 ![Terraform Config](./03-terraform-config.png)
 *Terraform configuration file defining all infrastructure in a single declarative template.*
 
-![Terraform Apply](./04-terraform-apply.png)
+![Terraform Apply](./04-terraform-apply-complete.png)
 *Terraform apply completed with all resources created successfully.*
 
-![Automation Account](./05-automation-account.png)
+![Automation Account](./05-automation-account-created.png)
 *Automation account aa-cost-watchdog visible in the resource group with managed identity enabled.*
 
 ![Schedule Created](./05a-schedule-created.png)
