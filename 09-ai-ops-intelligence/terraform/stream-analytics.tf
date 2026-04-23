@@ -37,19 +37,16 @@ resource "azurerm_stream_analytics_job" "main" {
         COUNT(*) AS message_count,
         System.Timestamp() AS window_end_time,
         CASE
-            WHEN industry = 'warehouse' AND AVG(temperature) > 85 AND AVG(vibration) > 0.8 THEN 'CRITICAL'
-            WHEN industry = 'warehouse' AND (AVG(temperature) > 75 OR AVG(vibration) > 0.6) THEN 'WARNING'
-            WHEN industry = 'healthcare' AND AVG(cpu_pct) > 90 AND AVG(packet_loss_pct) > 3 THEN 'CRITICAL'
-            WHEN industry = 'healthcare' AND (AVG(cpu_pct) > 80 OR AVG(packet_loss_pct) > 2) THEN 'WARNING'
+            WHEN AVG(temperature) > 85 AND AVG(vibration) > 0.8 THEN 'CRITICAL'
+            WHEN AVG(temperature) > 75 OR AVG(vibration) > 0.6 THEN 'WARNING'
+            WHEN AVG(cpu_pct) > 90 THEN 'CRITICAL'
+            WHEN AVG(cpu_pct) > 80 OR AVG(packet_loss_pct) > 2 THEN 'WARNING'
             ELSE 'NORMAL'
         END AS severity
     INTO [output-alerts]
     FROM [input-iothub] TIMESTAMP BY EventEnqueuedUtcTime
-    GROUP BY deviceId, industry, TumblingWindow(minute, 5)
-    HAVING
-        (industry = 'warehouse' AND (AVG(temperature) > 75 OR AVG(vibration) > 0.6))
-        OR
-        (industry = 'healthcare' AND (AVG(cpu_pct) > 80 OR AVG(packet_loss_pct) > 2))
+    GROUP BY deviceId, industry, TumblingWindow(minute, 1)
+    HAVING COUNT(*) > 0
   QUERY
 }
 

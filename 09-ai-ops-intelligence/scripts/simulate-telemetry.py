@@ -98,8 +98,8 @@ def generate_warehouse_reading(device: dict, inject_anomaly: bool = False) -> di
 
     if inject_anomaly:
         # Simulate bearing failure: temperature creeps up, vibration spikes
-        anomaly_temp = random.uniform(20, 35)
-        anomaly_vib  = random.uniform(0.3, 0.6)
+        anomaly_temp = random.uniform(30, 40)
+        anomaly_vib  = random.uniform(0.5, 0.7)
     else:
         anomaly_temp = 0
         anomaly_vib  = 0
@@ -129,8 +129,8 @@ def generate_healthcare_reading(device: dict, inject_anomaly: bool = False) -> d
     noise_loss = random.gauss(0, 0.05)
 
     if inject_anomaly:
-        anomaly_cpu  = random.uniform(25, 40)
-        anomaly_loss = random.uniform(2.0, 5.0)
+        anomaly_cpu  = random.uniform(30, 45)
+        anomaly_loss = random.uniform(3.0, 6.0)
         anomaly_temp = random.uniform(10, 20)
     else:
         anomaly_cpu  = 0
@@ -180,13 +180,13 @@ def main():
     client = IoTHubDeviceClient.create_from_connection_string(connection_string)
 
     messages_sent = 0
-    anomaly_cycle = 0  # Every 20 messages, inject an anomaly
+    anomaly_cycle = 0  # Inject anomaly every 4 cycles
 
     try:
         while True:
             anomaly_cycle += 1
-            # Inject anomaly every 20th cycle — about 5% of readings
-            inject_anomaly = (anomaly_cycle % 20 == 0)
+            # Inject anomaly every 4th cycle — enough per 5-min window
+            inject_anomaly = (anomaly_cycle % 4 == 0)
 
             if inject_anomaly:
                 print(f"\n[{messages_sent + 1}] INJECTING ANOMALY this cycle...")
