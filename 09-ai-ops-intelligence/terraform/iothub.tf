@@ -96,6 +96,16 @@ resource "azurerm_iothub" "main" {
     endpoint_names = ["events"]
     enabled        = true
   }
+
+  lifecycle {
+    ignore_changes = [
+      min_tls_version,
+      endpoint,
+      enrichment,
+      cloud_to_device,
+      shared_access_policy,
+    ]
+  }
 }
 
 # Note: Device registration (warehouse-sensor-01, clinical-server-01)
