@@ -1,0 +1,11 @@
+# Copy this file to terraform.tfvars and fill in your real values.
+# NEVER commit terraform.tfvars to GitHub — it contains your email
+# and is listed in .gitignore already.
+
+location           = "eastus2"
+project_name       = "aiops"
+environment        = "dev"
+notification_email = "your-email@example.com"
+openai_model       = "gpt-4o-mini"
+rto_target_minutes = 30
+rpo_target_minutes = 15

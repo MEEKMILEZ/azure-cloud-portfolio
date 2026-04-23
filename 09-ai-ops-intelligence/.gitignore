@@ -1,0 +1,26 @@
+# Terraform state files — these get created locally after running terraform apply.
+# They contain sensitive info and should never be pushed to GitHub.
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+
+# Your actual variable values — keep this private
+terraform.tfvars
+
+# Python virtual environments and cache
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Environment variable files
+.env
+*.env
+
+# OS clutter
+.DS_Store
+Thumbs.db
+
+# Screenshots can be large — add selectively instead
+# screenshots/*.png
