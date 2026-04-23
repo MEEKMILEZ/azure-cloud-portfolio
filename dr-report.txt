@@ -1,0 +1,27 @@
+﻿### Executive Summary  
+A disaster recovery (DR) test was conducted on the development environment on April 23, 2026. The test demonstrated strong recovery performance, meeting both recovery time (RTO) and recovery point (RPO) objectives. However, a minor issue was encountered during failover simulation, which requires attention.
+
+---
+
+### Test Results  
+- **Recovery Time Objective (RTO):** Target was 30 minutes; actual recovery time was 0.72 minutes, significantly faster than expected.  
+- **Recovery Point Objective (RPO):** Target was 15 minutes; actual data recovery point was achieved in 8 minutes, well within the target.  
+
+Both metrics indicate excellent recovery performance.
+
+---
+
+### Issues Found  
+1. **Failover Simulation Error:** During the failover test, an error occurred stating, "Cannot validate argument on parameter 'Name'. The argument is null or empty." This suggests a configuration issue in the failover process.  
+   - **Risk Level:** **Low** â While the error did not impact the actual recovery metrics, it could hinder future failover tests or real-world failover scenarios if left unresolved.
+
+---
+
+### Recommendation  
+- Investigate and resolve the failover simulation error by reviewing the configuration of the failover command, specifically the 'Name' parameter. Ensure all required inputs are properly defined and validated.  
+- Conduct a follow-up test once the issue is resolved to confirm the fix and ensure failover functionality is fully operational.
+
+---
+
+### Overall Verdict  
+**PASS** â The test successfully met RTO and RPO targets, demonstrating strong recovery capabilities. However, resolving the failover simulation issue is recommended to ensure long-term reliability.

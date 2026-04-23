@@ -15,6 +15,7 @@ from azure.keyvault.secrets import SecretClient
 from azure.eventhub import EventHubConsumerClient
 from azure.storage.blob import BlobServiceClient
 from openai import AzureOpenAI
+import urllib.request
 
 KEY_VAULT_URL          = os.environ.get("KEY_VAULT_URL")
 EVENTHUB_ALERTS_CONN   = os.environ.get("EVENTHUB_ALERTS_CONNECTION")
@@ -209,6 +210,27 @@ def main():
     print(f"  Suppressed/Info : {suppressed}")
     print(f"  Actionable      : {processed - suppressed}")
     print("=" * 60)
+
+    # Notify Logic App via HTTP trigger — sends email automatically
+    if processed > 0:
+        try:
+            logic_app_url = "https://prod-24.eastus2.logic.azure.com:443/workflows/d1582f7d21944268b64d2298e0706b02/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=gRsE2dvrYmc7_lBu4nrxQxcY7EuE2slkoVF_fCK_uJM"
+            summary = json.dumps({
+                "total_processed": processed,
+                "critical_alerts": critical,
+                "actionable": processed - suppressed,
+                "message": f"AI triage complete. {critical} CRITICAL alerts detected. {processed - suppressed} actionable incidents require attention."
+            }).encode('utf-8')
+            req = urllib.request.Request(
+                logic_app_url,
+                data=summary,
+                headers={"Content-Type": "application/json"},
+                method="POST"
+            )
+            urllib.request.urlopen(req, timeout=10)
+            print("\nLogic App notified — email triggered.")
+        except Exception as e:
+            print(f"\nLogic App notification failed: {e}")
 
 if __name__ == "__main__":
     main()
