@@ -24,7 +24,7 @@ variable "notification_email" {
 variable "openai_model" {
   description = "Azure OpenAI model to use for alert triage and DR report generation"
   type        = string
-  default     = "gpt-4o-mini"
+  default     = "gpt-4o"
 }
 
 variable "rto_target_minutes" {
