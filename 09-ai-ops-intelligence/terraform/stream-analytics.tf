@@ -26,53 +26,30 @@ resource "azurerm_stream_analytics_job" "main" {
   #   - OR packet loss is too high (>5% for clinical network gear)
   # Output those flagged messages to the alerts Event Hub.
   transformation_query = <<-QUERY
-    -- Warehouse equipment anomaly detection
     SELECT
         deviceId,
-        'warehouse' AS industry,
+        industry,
         AVG(temperature) AS avg_temperature,
         AVG(vibration) AS avg_vibration,
+        AVG(cpu_pct) AS avg_cpu,
+        AVG(packet_loss_pct) AS avg_packet_loss,
         MAX(temperature) AS max_temperature,
         COUNT(*) AS message_count,
         System.Timestamp() AS window_end_time,
         CASE
-            WHEN AVG(temperature) > 85 AND AVG(vibration) > 0.8
-                THEN 'CRITICAL'
-            WHEN AVG(temperature) > 75 OR AVG(vibration) > 0.6
-                THEN 'WARNING'
+            WHEN industry = 'warehouse' AND AVG(temperature) > 85 AND AVG(vibration) > 0.8 THEN 'CRITICAL'
+            WHEN industry = 'warehouse' AND (AVG(temperature) > 75 OR AVG(vibration) > 0.6) THEN 'WARNING'
+            WHEN industry = 'healthcare' AND AVG(cpu_pct) > 90 AND AVG(packet_loss_pct) > 3 THEN 'CRITICAL'
+            WHEN industry = 'healthcare' AND (AVG(cpu_pct) > 80 OR AVG(packet_loss_pct) > 2) THEN 'WARNING'
             ELSE 'NORMAL'
         END AS severity
     INTO [output-alerts]
     FROM [input-iothub] TIMESTAMP BY EventEnqueuedUtcTime
-    WHERE industry = 'warehouse'
     GROUP BY deviceId, industry, TumblingWindow(minute, 5)
     HAVING
-        AVG(temperature) > 75 OR AVG(vibration) > 0.6
-
-    UNION ALL
-
-    -- Clinical / healthcare server anomaly detection
-    SELECT
-        deviceId,
-        'healthcare' AS industry,
-        AVG(temperature) AS avg_temperature,
-        AVG(packet_loss_pct) AS avg_packet_loss,
-        AVG(cpu_pct) AS avg_cpu,
-        COUNT(*) AS message_count,
-        System.Timestamp() AS window_end_time,
-        CASE
-            WHEN AVG(cpu_pct) > 90 AND AVG(packet_loss_pct) > 3
-                THEN 'CRITICAL'
-            WHEN AVG(cpu_pct) > 80 OR AVG(packet_loss_pct) > 2
-                THEN 'WARNING'
-            ELSE 'NORMAL'
-        END AS severity
-    INTO [output-alerts]
-    FROM [input-iothub] TIMESTAMP BY EventEnqueuedUtcTime
-    WHERE industry = 'healthcare'
-    GROUP BY deviceId, industry, TumblingWindow(minute, 5)
-    HAVING
-        AVG(cpu_pct) > 80 OR AVG(packet_loss_pct) > 2
+        (industry = 'warehouse' AND (AVG(temperature) > 75 OR AVG(vibration) > 0.6))
+        OR
+        (industry = 'healthcare' AND (AVG(cpu_pct) > 80 OR AVG(packet_loss_pct) > 2))
   QUERY
 }
 
@@ -136,6 +113,33 @@ resource "azurerm_stream_analytics_output_eventhub" "anomaly_output" {
     type     = "Json"
     encoding = "UTF8"
     format   = "LineSeparated"
+  }
+}
+
+# ─────────────────────────────────────────────
+# AUTO-START THE STREAM ANALYTICS JOB
+# This runs an Azure CLI command automatically
+# after the job and its inputs/outputs are ready.
+# No manual clicking required — the job starts
+# itself as part of the deployment.
+# ─────────────────────────────────────────────
+resource "null_resource" "start_stream_analytics" {
+  depends_on = [
+    azurerm_stream_analytics_job.main,
+    azurerm_stream_analytics_stream_input_eventhub.iothub_input,
+    azurerm_stream_analytics_output_eventhub.anomaly_output
+  ]
+
+  provisioner "local-exec" {
+    command     = "az config set extension.use_dynamic_install=yes_without_prompt && az stream-analytics job start --resource-group ${azurerm_resource_group.main.name} --job-name ${azurerm_stream_analytics_job.main.name} --output-start-mode JobStartTime"
+    interpreter = ["cmd", "/C"]
+  }
+
+  # Re-run this if the job name or resource group changes
+  triggers = {
+    job_name       = azurerm_stream_analytics_job.main.name
+    resource_group = azurerm_resource_group.main.name
+    always_run     = timestamp()
   }
 }
 
