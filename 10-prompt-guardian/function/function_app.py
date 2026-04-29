@@ -228,3 +228,87 @@ def override(req: func.HttpRequest) -> func.HttpResponse:
         "audit_ref": audit_blob,
         "manager_notified": bool(os.environ.get("OVERRIDE_LOGIC_APP_URL"))
     }, indent=2), status_code=200, mimetype="application/json", headers={"Access-Control-Allow-Origin": "*"})
+
+
+@app.route(route="audit-summary", methods=["GET", "OPTIONS"])
+def audit_summary(req: func.HttpRequest) -> func.HttpResponse:
+    if req.method == "OPTIONS":
+        return func.HttpResponse(status_code=200, headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        })
+
+    connection_string = os.environ.get("STORAGE_CONNECTION_STRING")
+    container_name = os.environ.get("AUDIT_CONTAINER", "audit-logs")
+
+    if not connection_string:
+        return func.HttpResponse(json.dumps({"error": "Storage not configured"}), status_code=500, mimetype="application/json")
+
+    try:
+        blob_service = BlobServiceClient.from_connection_string(connection_string)
+        container = blob_service.get_container_client(container_name)
+
+        events = []
+        for blob in container.list_blobs():
+            blob_client = container.get_blob_client(blob.name)
+            data = json.loads(blob_client.download_blob().readall().decode("utf-8"))
+            data["blob_name"] = blob.name
+            events.append(data)
+
+        events.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+
+        # Calculate summary
+        total = len(events)
+        allow = sum(1 for e in events if e.get("action") == "ALLOW")
+        redact = sum(1 for e in events if e.get("action") == "REDACT")
+        block = sum(1 for e in events if e.get("action") == "BLOCK")
+        overrides = sum(1 for e in events if e.get("override"))
+
+        # Category breakdown
+        categories = {}
+        for e in events:
+            cat = e.get("category", "UNKNOWN")
+            if e.get("action") != "ALLOW":
+                categories[cat] = categories.get(cat, 0) + 1
+
+        # Override reasons
+        override_reasons = {}
+        for e in events:
+            if e.get("override") and e.get("override_reason"):
+                r = e["override_reason"]
+                override_reasons[r] = override_reasons.get(r, 0) + 1
+
+        # Users with most blocks
+        user_blocks = {}
+        for e in events:
+            if e.get("action") in ("BLOCK",) or e.get("override"):
+                u = e.get("user_id", "anonymous")
+                user_blocks[u] = user_blocks.get(u, 0) + 1
+
+        summary = {
+            "total": total,
+            "allow": allow,
+            "redact": redact,
+            "block": block,
+            "overrides": overrides,
+            "categories": categories,
+            "override_reasons": override_reasons,
+            "user_blocks": user_blocks,
+            "recent_events": events[:20]
+        }
+
+        return func.HttpResponse(
+            json.dumps(summary, indent=2),
+            status_code=200,
+            mimetype="application/json",
+            headers={"Access-Control-Allow-Origin": "*"}
+        )
+    except Exception as e:
+        logging.error(f"Audit summary failed: {e}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers={"Access-Control-Allow-Origin": "*"}
+        )
