@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompt Guardian — AI Prompt Safety Scanner</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface-hover: #1a2236;
+    --border: #1e2a3e;
+    --border-focus: #3b82f6;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+    --accent: #3b82f6;
+    --allow-bg: #052e16;
+    --allow-border: #16a34a;
+    --allow-text: #4ade80;
+    --allow-glow: rgba(74, 222, 128, 0.1);
+    --redact-bg: #1a1500;
+    --redact-border: #ca8a04;
+    --redact-text: #facc15;
+    --redact-glow: rgba(250, 204, 21, 0.1);
+    --block-bg: #1a0505;
+    --block-border: #dc2626;
+    --block-text: #f87171;
+    --block-glow: rgba(248, 113, 113, 0.1);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --font: 'DM Sans', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* Header */
+  .header {
+    padding: 32px 40px 24px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(59,130,246,0.04) 0%, transparent 100%);
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 8px;
+  }
+
+  .shield-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+
+  .header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .header p {
+    color: var(--text-muted);
+    font-size: 14px;
+    max-width: 600px;
+  }
+
+  .header .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-top: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: #3b82f6;
+    border-radius: 50%;
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Main layout */
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: calc(100vh - 120px);
+  }
+
+  /* Left panel - input */
+  .panel-input {
+    padding: 32px 40px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+
+  .prompt-textarea {
+    flex: 1;
+    min-height: 240px;
+    max-height: 400px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    font-family: var(--font);
+    font-size: 15px;
+    color: var(--text);
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    line-height: 1.7;
+  }
+
+  .prompt-textarea::placeholder {
+    color: var(--text-dim);
+  }
+
+  .prompt-textarea:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  }
+
+  .char-count {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: right;
+    margin-top: 8px;
+  }
+
+  /* Buttons */
+  .button-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .btn-scan {
+    flex: 1;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: white;
+    font-family: var(--font);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-scan:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+  }
+
+  .btn-scan:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-scan.scanning {
+    background: linear-gradient(135deg, #1e40af, #1d4ed8);
+  }
+
+  .btn-clear {
+    padding: 14px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-clear:hover {
+    border-color: var(--text-dim);
+    color: var(--text);
+  }
+
+  /* Sample prompts */
+  .samples {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .samples-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+
+  .sample-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .chip {
+    padding: 6px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .chip:hover {
+    border-color: var(--accent);
+    color: var(--text);
+    background: rgba(59, 130, 246, 0.05);
+  }
+
+  .chip.phi { border-color: rgba(220, 38, 38, 0.3); }
+  .chip.phi:hover { border-color: #dc2626; color: var(--block-text); }
+  .chip.pii { border-color: rgba(202, 138, 4, 0.3); }
+  .chip.pii:hover { border-color: #ca8a04; color: var(--redact-text); }
+  .chip.clean { border-color: rgba(22, 163, 74, 0.3); }
+  .chip.clean:hover { border-color: #16a34a; color: var(--allow-text); }
+  .chip.cred { border-color: rgba(220, 38, 38, 0.3); }
+  .chip.cred:hover { border-color: #dc2626; color: var(--block-text); }
+
+  /* Right panel - results */
+  .panel-result {
+    padding: 32px 40px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  /* Empty state */
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--text-dim);
+  }
+
+  .empty-state .icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.3;
+  }
+
+  .empty-state p {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* Scanning state */
+  .scanning-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .scan-animation {
+    width: 48px;
+    height: 48px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 16px;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .scanning-text {
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  /* Result card */
+  .result-card {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Verdict banner */
+  .verdict {
+    padding: 20px 24px;
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .verdict.allow {
+    background: var(--allow-bg);
+    border: 1px solid var(--allow-border);
+    box-shadow: 0 0 30px var(--allow-glow);
+  }
+
+  .verdict.redact {
+    background: var(--redact-bg);
+    border: 1px solid var(--redact-border);
+    box-shadow: 0 0 30px var(--redact-glow);
+  }
+
+  .verdict.block {
+    background: var(--block-bg);
+    border: 1px solid var(--block-border);
+    box-shadow: 0 0 30px var(--block-glow);
+  }
+
+  .verdict-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+  }
+
+  .verdict-content h2 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+
+  .verdict.allow h2 { color: var(--allow-text); }
+  .verdict.redact h2 { color: var(--redact-text); }
+  .verdict.block h2 { color: var(--block-text); }
+
+  .verdict-content p {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* Meta row */
+  .meta-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .meta-tag {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+
+  .meta-tag span { color: var(--text); font-weight: 500; }
+
+  /* Detail sections */
+  .detail-section {
+    margin-bottom: 20px;
+  }
+
+  .detail-section h3 {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+
+  .detail-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  /* Flagged content */
+  .flagged-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .flagged-item {
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 8px 12px;
+    background: rgba(220, 38, 38, 0.08);
+    border: 1px solid rgba(220, 38, 38, 0.2);
+    border-radius: 6px;
+    color: var(--block-text);
+  }
+
+  /* Redacted prompt */
+  .redacted-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+
+  .redacted-box mark {
+    background: rgba(202, 138, 4, 0.2);
+    color: var(--redact-text);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+
+  /* Audit ref */
+  .audit-ref {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .audit-ref::before {
+    content: '🔒';
+    font-size: 13px;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .main { grid-template-columns: 1fr; }
+    .panel-input { border-right: none; border-bottom: 1px solid var(--border); }
+    .header { padding: 24px 20px 20px; }
+    .panel-input, .panel-result { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="shield-icon">🛡️</div>
+    <h1>Prompt Guardian</h1>
+  </div>
+  <p>Paste any prompt below to scan for sensitive data before it reaches an AI tool. The system detects PHI, PII, credentials, financial data, and legal privilege in real time.</p>
+  <div class="badge">Live — Connected to Azure OpenAI</div>
+</div>
+
+<div class="main">
+  <!-- Left: Input -->
+  <div class="panel-input">
+    <div class="panel-label">Prompt to scan</div>
+    <textarea id="prompt" class="prompt-textarea" placeholder="Type or paste a prompt here...&#10;&#10;Example: &quot;Rewrite this discharge summary: Patient Jane Martinez, DOB 04/22/1978...&quot;"></textarea>
+    <div class="char-count"><span id="charCount">0</span> / 10,000</div>
+
+    <div class="button-row">
+      <button id="scanBtn" class="btn-scan" onclick="scanPrompt()">
+        <span id="scanText">🔍 Scan Prompt</span>
+      </button>
+      <button class="btn-clear" onclick="clearAll()">Clear</button>
+    </div>
+
+    <div class="samples">
+      <div class="samples-label">Try a sample prompt</div>
+      <div class="sample-chips">
+        <div class="chip clean" onclick="loadSample('clean')">✅ Safe question</div>
+        <div class="chip phi" onclick="loadSample('phi')">🏥 Discharge summary</div>
+        <div class="chip pii" onclick="loadSample('pii')">📧 Client email</div>
+        <div class="chip cred" onclick="loadSample('cred')">🔑 Database credentials</div>
+        <div class="chip phi" onclick="loadSample('therapy')">🧠 Therapy note</div>
+        <div class="chip clean" onclick="loadSample('fake')">🧪 Generate fake data</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Results -->
+  <div class="panel-result">
+    <div class="panel-label">Classification result</div>
+
+    <div id="emptyState" class="empty-state">
+      <div class="icon">🛡️</div>
+      <p>Paste a prompt and click <strong>Scan Prompt</strong><br>to see the AI classification result.</p>
+    </div>
+
+    <div id="scanningState" class="scanning-state" style="display:none">
+      <div class="scan-animation"></div>
+      <div class="scanning-text">Analyzing prompt with Azure OpenAI...</div>
+    </div>
+
+    <div id="resultCard" class="result-card" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+const API_URL = 'https://fn-promptguard-061l6f.azurewebsites.net/api/classify';
+
+const SAMPLES = {
+  clean: "What's the best way to set up Azure Monitor alerts for CPU usage spikes on a virtual machine?",
+  phi: "Please rewrite this discharge summary to sound more professional: Patient Jane Martinez, DOB 04/22/1978, MRN 4829301, was admitted on 03/15/2026 for acute appendicitis. Dr. Patel performed laparoscopic appendectomy. Patient discharged 03/17/2026 with Percocet 5mg prescribed.",
+  pii: "Write a professional email to our client at john.smith@acmecorp.com confirming the meeting on Thursday at 2pm. His phone number is 614-555-0142.",
+  cred: "I'm getting an error connecting to our production database. Here's my connection string: Server=sql-prod-east.database.windows.net;Database=PatientRecords;User Id=admin;Password=Pr0d$ecure!2026;",
+  therapy: "Proofread this therapy note: Session with Alex P., age 17. Patient reports increased anxiety following parents' divorce. Expressed suicidal ideation for the first time. Safety plan established. Parent (Michelle P.) notified.",
+  fake: "Generate sample patient data for testing our new intake form. I need 5 fake patients with names, DOBs, and insurance IDs."
+};
+
+const textarea = document.getElementById('prompt');
+const charCount = document.getElementById('charCount');
+const scanBtn = document.getElementById('scanBtn');
+const scanText = document.getElementById('scanText');
+
+textarea.addEventListener('input', () => {
+  charCount.textContent = textarea.value.length;
+});
+
+function loadSample(key) {
+  textarea.value = SAMPLES[key];
+  charCount.textContent = textarea.value.length;
+  textarea.focus();
+}
+
+function clearAll() {
+  textarea.value = '';
+  charCount.textContent = '0';
+  document.getElementById('emptyState').style.display = 'flex';
+  document.getElementById('scanningState').style.display = 'none';
+  document.getElementById('resultCard').style.display = 'none';
+}
+
+async function scanPrompt() {
+  const prompt = textarea.value.trim();
+  if (!prompt) return;
+
+  // Show scanning
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('resultCard').style.display = 'none';
+  document.getElementById('scanningState').style.display = 'flex';
+  scanBtn.disabled = true;
+  scanBtn.classList.add('scanning');
+  scanText.textContent = '⏳ Scanning...';
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-User-ID': 'sim-ui-demo' },
+      body: JSON.stringify({ prompt })
+    });
+
+    const result = await response.json();
+    renderResult(result);
+  } catch (err) {
+    renderError(err.message);
+  } finally {
+    scanBtn.disabled = false;
+    scanBtn.classList.remove('scanning');
+    scanText.textContent = '🔍 Scan Prompt';
+  }
+}
+
+function renderResult(r) {
+  document.getElementById('scanningState').style.display = 'none';
+  const card = document.getElementById('resultCard');
+  card.style.display = 'block';
+
+  const action = (r.action || 'UNKNOWN').toUpperCase();
+  const cls = action === 'ALLOW' ? 'allow' : action === 'REDACT' ? 'redact' : 'block';
+  const icon = action === 'ALLOW' ? '✅' : action === 'REDACT' ? '✂️' : '⛔';
+  const label = action === 'ALLOW' ? 'Safe to Proceed' : action === 'REDACT' ? 'Sensitive Content — Redacted Version Available' : 'Blocked — Sensitive Data Detected';
+
+  let html = `
+    <div class="verdict ${cls}">
+      <div class="verdict-icon">${icon}</div>
+      <div class="verdict-content">
+        <h2>${action}</h2>
+        <p>${label}</p>
+      </div>
+    </div>
+
+    <div class="meta-row">
+      <div class="meta-tag">Category: <span>${r.category || '—'}</span></div>
+      <div class="meta-tag">Severity: <span>${r.severity || '—'}</span></div>
+      <div class="meta-tag">Confidence: <span>${r.confidence || '—'}</span></div>
+    </div>
+
+    <div class="detail-section">
+      <h3>AI Assessment</h3>
+      <div class="detail-box">${r.summary || 'No summary available.'}</div>
+    </div>
+
+    <div class="detail-section">
+      <h3>Recommended Action</h3>
+      <div class="detail-box">${r.recommended_action || '—'}</div>
+    </div>
+  `;
+
+  // Flagged content
+  if (r.flagged_content && r.flagged_content.length > 0) {
+    html += `
+      <div class="detail-section">
+        <h3>Flagged Content</h3>
+        <ul class="flagged-list">
+          ${r.flagged_content.map(f => `<li class="flagged-item">${escapeHtml(f)}</li>`).join('')}
+        </ul>
+      </div>
+    `;
+  }
+
+  // Redacted prompt
+  if (r.redacted_prompt) {
+    const highlighted = escapeHtml(r.redacted_prompt).replace(
+      /\[REDACTED[^\]]*\]/g,
+      match => `<mark>${match}</mark>`
+    );
+    html += `
+      <div class="detail-section">
+        <h3>Redacted Version — Safe to Use</h3>
+        <div class="redacted-box">${highlighted}</div>
+      </div>
+    `;
+  }
+
+  // Audit reference
+  if (r.audit_ref) {
+    html += `<div class="audit-ref">Logged to compliance audit trail: ${r.audit_ref}</div>`;
+  }
+
+  card.innerHTML = html;
+}
+
+function renderError(msg) {
+  document.getElementById('scanningState').style.display = 'none';
+  const card = document.getElementById('resultCard');
+  card.style.display = 'block';
+  card.innerHTML = `
+    <div class="verdict block">
+      <div class="verdict-icon">⚠️</div>
+      <div class="verdict-content">
+        <h2>Error</h2>
+        <p>${escapeHtml(msg)}</p>
+      </div>
+    </div>
+  `;
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Allow Ctrl+Enter to scan
+textarea.addEventListener('keydown', (e) => {
+  if (e.ctrlKey && e.key === 'Enter') scanPrompt();
+});
+</script>
+</body>
+</html>
