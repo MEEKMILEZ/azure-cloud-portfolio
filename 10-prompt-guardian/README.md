@@ -53,7 +53,7 @@ The classify endpoint receives a prompt, sends it to GPT 4o with a healthcare sp
 ![Storage Audit Container](./screenshots/02-storage-audit-logs-container.png)
 *Append only audit logs container storing immutable classification records.*
 
-![Key Vault Secrets](./screenshots/03-key-vault-secrets.png.png)
+![Key Vault Secrets](./screenshots/03-key-vault-secrets.png)
 *All credentials stored in Key Vault. Zero secrets in code.*
 
 ![OpenAI Deployment](./screenshots/04-openai-model-deployment.png)
