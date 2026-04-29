@@ -53,7 +53,7 @@ The classify endpoint receives a prompt, sends it to GPT 4o with a healthcare sp
 ![Storage Audit Container](./screenshots/02-storage-audit-logs-container.png)
 *Append only audit logs container storing immutable classification records.*
 
-![Key Vault Secrets](./screenshots/03-key-vault-secrets.png)
+![Key Vault Secrets](./screenshots/03-key-vault-secrets.png.png)
 *All credentials stored in Key Vault. Zero secrets in code.*
 
 ![OpenAI Deployment](./screenshots/04-openai-model-deployment.png)
@@ -134,6 +134,29 @@ Live dashboard pulling real audit data from Azure via the audit summary endpoint
 | $50,000 to $300,000 per year | Approximately $2,400 per year |
 | Edge only (Microsoft) | Any browser |
 
+
+## Troubleshooting and Lessons Learned
+
+### App Service Plan Quota Blocked in East US
+The Azure subscription had zero quota for both Dynamic (Y1) and Basic (B1) App Service VMs in East US. This is a Microsoft.Web regional quota separate from Compute vCPU quotas. Resolved by requesting a B1 quota increase to 5 via the Azure Quotas portal blade, then redeploying in East US 2.
+
+### Function App 404 After Deployment
+The Python v2 programming model requires AzureWebJobsFeatureFlags set to EnableWorkerIndexing. Without this, the function host starts but registers zero routes. Resolved by setting the flag in Terraform app_settings and forcing a full Oryx remote build with func azure functionapp publish using the build remote flag.
+
+### Logic App Not Receiving Override Notifications
+The OVERRIDE_LOGIC_APP_URL environment variable was truncated at the ampersand character when set via Azure CLI. The SAS signature parameters (sp, sv, sig) were missing from the stored URL. Resolved by setting the full URL directly in the Azure portal Function App Configuration blade.
+
+### Chrome Extension Content Security Policy Violation
+Inline scripts in popup.html are blocked by Chrome Manifest V3 CSP rules. Resolved by moving all JavaScript to an external popup.js file and referencing it with a script src tag.
+
+### GitHub Push Protection Blocking Secrets
+Terraform state files and test data containing real Azure AD secrets, storage account keys, and connection strings were committed to git history. GitHub push protection rejected the push. Resolved by running git filter branch to scrub all sensitive files from history, adding a .gitignore for state files and provider binaries, and sanitizing test data to use fake credential values.
+
+### ChatGPT DOM Selector Changes
+The Chrome extension intercepts the submit button using DOM selectors. ChatGPT's send button uses id composer submit button and data testid send button. These selectors change periodically with ChatGPT UI updates and require maintenance. The extension uses multiple fallback selectors to handle variations.
+
+### Dashboard Empty Response From Audit Summary Endpoint
+The audit summary endpoint returned an empty response on cold start, causing the dashboard to fail parsing JSON. Resolved by adding response validation in the dashboard JavaScript that checks for empty responses before attempting JSON parse, and by forcing the Oryx build to properly install all Python dependencies.
 ## Technologies Used
 
 Terraform, Azure Functions (Python), Azure OpenAI (GPT 4o), Azure Blob Storage, Azure Key Vault, Azure Logic Apps, Chrome Extension (Manifest V3), JavaScript, HTML/CSS, Managed Identity
