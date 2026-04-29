@@ -1,4 +1,4 @@
-# 10 Prompt Guardian: Real Time AI Prompt Interception for Regulated Environments
+# 10 Prompt Guardian: Stopping PHI Leaks at the Prompt Level
 
 ## The Problem
 
@@ -10,13 +10,19 @@ Microsoft announced shadow AI protection at RSAC 2026 but it only works in Edge 
 
 ## The Solution
 
-Prompt Guardian intercepts AI prompts at the moment of submission, before data leaves the browser. It uses Azure OpenAI to understand context (not just keywords), classifies content as ALLOW, REDACT, or BLOCK, and creates an immutable audit trail for every decision.
+Prompt Guardian sits between the user and the AI tool. Before anything is sent, it decides: should this data leave the organization at all?
 
-The key differentiator is the justification override flow. Instead of forcing users to bypass the system entirely, Prompt Guardian gives them a controlled way to proceed. The override is logged, the manager is notified automatically, and the audit trail says "User submitted PHI with justification: medical necessity." That is compliance defensibility.
+A Chrome extension intercepts the submit button on ChatGPT, Claude, or Copilot. The prompt is routed to an Azure Function running GPT 4o, which reads the full context and classifies the content as ALLOW, REDACT, or BLOCK. Every decision is logged to an immutable audit trail. Every override requires a justification and triggers an automatic manager notification.
+
+The result: when auditors ask "show us logs of sensitive data shared with external AI tools," you have them. When a nurse needs to override a block for medical necessity, the system lets them proceed with accountability instead of forcing them to bypass it entirely. That is compliance defensibility.
 
 Cost: approximately $150 to $200 per month on Azure consumption. Not $50,000 to $300,000 per year.
 
 ## Architecture
+
+```
+Browser → Function → OpenAI → Decision → Storage → Notification → Dashboard
+```
 
 Seven layers working together:
 
@@ -30,7 +36,7 @@ Seven layers working together:
 
 ## Live Infrastructure
 
-All deployed via Terraform:
+All resources deployed via Terraform. No manual configuration.
 
 | Resource | Name | Purpose |
 |---|---|---|
@@ -53,7 +59,7 @@ The classify endpoint receives a prompt, sends it to GPT 4o with a healthcare sp
 ![Storage Audit Container](./screenshots/02-storage-audit-logs-container.png)
 *Append only audit logs container storing immutable classification records.*
 
-![Key Vault Secrets](./screenshots/03-key-vault-secrets.png.png)
+![Key Vault Secrets](./screenshots/03-key-vault-secrets.png)
 *All credentials stored in Key Vault. Zero secrets in code.*
 
 ![OpenAI Deployment](./screenshots/04-openai-model-deployment.png)
@@ -125,6 +131,8 @@ Live dashboard pulling real audit data from Azure via the audit summary endpoint
 
 ## What Makes This Different
 
+Most DLP tools react after data leaves. Prompt Guardian acts before it ever does.
+
 | Enterprise DLP | Prompt Guardian |
 |---|---|
 | Monitors network traffic | Intercepts at browser submit button |
@@ -134,6 +142,14 @@ Live dashboard pulling real audit data from Azure via the audit summary endpoint
 | $50,000 to $300,000 per year | Approximately $2,400 per year |
 | Edge only (Microsoft) | Any browser |
 
+## Edge Cases That Prove Intelligence
+
+| Prompt | DLP Decision | Prompt Guardian | Why |
+|---|---|---|---|
+| "Generate fake patient data for testing" | BLOCK | ALLOW | No real data sent. User wants synthetic data. |
+| "Anonymize this case study: 52yo female..." | BLOCK | REDACT | User is doing the right thing. Help them. |
+| "What are HIPAA penalties in 2026?" | BLOCK | ALLOW | Educational question. No sensitive data. |
+| "Patient Jane Martinez DOB 04/22/1978..." | Depends | BLOCK (critical) | Real PHI with identifiers. Must not leave. |
 
 ## Troubleshooting and Lessons Learned
 
@@ -141,22 +157,23 @@ Live dashboard pulling real audit data from Azure via the audit summary endpoint
 The Azure subscription had zero quota for both Dynamic (Y1) and Basic (B1) App Service VMs in East US. This is a Microsoft.Web regional quota separate from Compute vCPU quotas. Resolved by requesting a B1 quota increase to 5 via the Azure Quotas portal blade, then redeploying in East US 2.
 
 ### Function App 404 After Deployment
-The Python v2 programming model requires AzureWebJobsFeatureFlags set to EnableWorkerIndexing. Without this, the function host starts but registers zero routes. Resolved by setting the flag in Terraform app_settings and forcing a full Oryx remote build with func azure functionapp publish using the build remote flag.
+The Python v2 programming model requires AzureWebJobsFeatureFlags set to EnableWorkerIndexing. Without this, the function host starts but registers zero routes. Resolved by setting the flag in Terraform app settings and forcing a full Oryx remote build.
 
 ### Logic App Not Receiving Override Notifications
-The OVERRIDE_LOGIC_APP_URL environment variable was truncated at the ampersand character when set via Azure CLI. The SAS signature parameters (sp, sv, sig) were missing from the stored URL. Resolved by setting the full URL directly in the Azure portal Function App Configuration blade.
+The OVERRIDE_LOGIC_APP_URL environment variable was truncated at the ampersand character when set via Azure CLI. The SAS signature parameters were missing from the stored URL. Resolved by setting the full URL directly in the Azure portal Function App Configuration blade.
 
 ### Chrome Extension Content Security Policy Violation
 Inline scripts in popup.html are blocked by Chrome Manifest V3 CSP rules. Resolved by moving all JavaScript to an external popup.js file and referencing it with a script src tag.
 
 ### GitHub Push Protection Blocking Secrets
-Terraform state files and test data containing real Azure AD secrets, storage account keys, and connection strings were committed to git history. GitHub push protection rejected the push. Resolved by running git filter branch to scrub all sensitive files from history, adding a .gitignore for state files and provider binaries, and sanitizing test data to use fake credential values.
+Terraform state files and test data containing real Azure AD secrets and storage account keys were committed to git history. GitHub push protection rejected the push. Resolved by running git filter branch to scrub all sensitive files from history, adding a .gitignore for state files, and sanitizing test data to use fake credential values.
 
 ### ChatGPT DOM Selector Changes
-The Chrome extension intercepts the submit button using DOM selectors. ChatGPT's send button uses id composer submit button and data testid send button. These selectors change periodically with ChatGPT UI updates and require maintenance. The extension uses multiple fallback selectors to handle variations.
+The Chrome extension intercepts the submit button using DOM selectors. ChatGPT's send button uses id composer submit button and data testid send button. These selectors change periodically with UI updates and require maintenance. The extension uses multiple fallback selectors to handle variations.
 
 ### Dashboard Empty Response From Audit Summary Endpoint
-The audit summary endpoint returned an empty response on cold start, causing the dashboard to fail parsing JSON. Resolved by adding response validation in the dashboard JavaScript that checks for empty responses before attempting JSON parse, and by forcing the Oryx build to properly install all Python dependencies.
+The audit summary endpoint returned an empty response on cold start, causing the dashboard to fail parsing JSON. Resolved by adding response validation in the dashboard JavaScript that checks for empty responses before attempting JSON parse and by forcing the Oryx build to properly install all Python dependencies.
+
 ## Technologies Used
 
 Terraform, Azure Functions (Python), Azure OpenAI (GPT 4o), Azure Blob Storage, Azure Key Vault, Azure Logic Apps, Chrome Extension (Manifest V3), JavaScript, HTML/CSS, Managed Identity
