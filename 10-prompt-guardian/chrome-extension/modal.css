@@ -262,3 +262,12 @@
   margin-top: 14px;
   font-family: 'Consolas', 'Monaco', monospace;
 }
+
+.pg-btn-override {
+  background: linear-gradient(135deg, #ca8a04, #a16207);
+  color: white;
+}
+
+.pg-btn-override:hover {
+  box-shadow: 0 4px 16px rgba(202, 138, 4, 0.4);
+}

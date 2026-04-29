@@ -33,479 +33,78 @@
     --font: 'DM Sans', sans-serif;
     --mono: 'JetBrains Mono', monospace;
   }
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: var(--font);
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    line-height: 1.6;
-  }
-
-  /* Header */
-  .header {
-    padding: 32px 40px 24px;
-    border-bottom: 1px solid var(--border);
-    background: linear-gradient(180deg, rgba(59,130,246,0.04) 0%, transparent 100%);
-  }
-
-  .header-top {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 8px;
-  }
-
-  .shield-icon {
-    width: 36px;
-    height: 36px;
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
-  }
-
-  .header h1 {
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-  }
-
-  .header p {
-    color: var(--text-muted);
-    font-size: 14px;
-    max-width: 600px;
-  }
-
-  .header .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(59, 130, 246, 0.1);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    color: #93c5fd;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 4px 10px;
-    border-radius: 20px;
-    margin-top: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .badge::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    background: #3b82f6;
-    border-radius: 50%;
-    animation: pulse-dot 2s ease-in-out infinite;
-  }
-
-  @keyframes pulse-dot {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
-
-  /* Main layout */
-  .main {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    min-height: calc(100vh - 120px);
-  }
-
-  /* Left panel - input */
-  .panel-input {
-    padding: 32px 40px;
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-  }
-
-  .panel-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    color: var(--text-dim);
-    margin-bottom: 12px;
-  }
-
-  .prompt-textarea {
-    flex: 1;
-    min-height: 240px;
-    max-height: 400px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    font-family: var(--font);
-    font-size: 15px;
-    color: var(--text);
-    resize: none;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    line-height: 1.7;
-  }
-
-  .prompt-textarea::placeholder {
-    color: var(--text-dim);
-  }
-
-  .prompt-textarea:focus {
-    border-color: var(--border-focus);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-  }
-
-  .char-count {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--text-dim);
-    text-align: right;
-    margin-top: 8px;
-  }
-
-  /* Buttons */
-  .button-row {
-    display: flex;
-    gap: 10px;
-    margin-top: 16px;
-  }
-
-  .btn-scan {
-    flex: 1;
-    padding: 14px 24px;
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    border: none;
-    border-radius: var(--radius-sm);
-    color: white;
-    font-family: var(--font);
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-
-  .btn-scan:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
-  }
-
-  .btn-scan:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .btn-scan.scanning {
-    background: linear-gradient(135deg, #1e40af, #1d4ed8);
-  }
-
-  .btn-clear {
-    padding: 14px 20px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--text-muted);
-    font-family: var(--font);
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .btn-clear:hover {
-    border-color: var(--text-dim);
-    color: var(--text);
-  }
-
-  /* Sample prompts */
-  .samples {
-    margin-top: 20px;
-    padding-top: 16px;
-    border-top: 1px solid var(--border);
-  }
-
-  .samples-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    color: var(--text-dim);
-    margin-bottom: 10px;
-  }
-
-  .sample-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  .chip {
-    padding: 6px 12px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    font-size: 12px;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
-
-  .chip:hover {
-    border-color: var(--accent);
-    color: var(--text);
-    background: rgba(59, 130, 246, 0.05);
-  }
-
-  .chip.phi { border-color: rgba(220, 38, 38, 0.3); }
-  .chip.phi:hover { border-color: #dc2626; color: var(--block-text); }
-  .chip.pii { border-color: rgba(202, 138, 4, 0.3); }
-  .chip.pii:hover { border-color: #ca8a04; color: var(--redact-text); }
-  .chip.clean { border-color: rgba(22, 163, 74, 0.3); }
-  .chip.clean:hover { border-color: #16a34a; color: var(--allow-text); }
-  .chip.cred { border-color: rgba(220, 38, 38, 0.3); }
-  .chip.cred:hover { border-color: #dc2626; color: var(--block-text); }
-
-  /* Right panel - results */
-  .panel-result {
-    padding: 32px 40px;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-  }
-
-  /* Empty state */
-  .empty-state {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    color: var(--text-dim);
-  }
-
-  .empty-state .icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-    opacity: 0.3;
-  }
-
-  .empty-state p {
-    font-size: 14px;
-    line-height: 1.6;
-  }
-
-  /* Scanning state */
-  .scanning-state {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .scan-animation {
-    width: 48px;
-    height: 48px;
-    border: 3px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin-bottom: 16px;
-  }
-
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
-  .scanning-text {
-    color: var(--text-muted);
-    font-size: 14px;
-  }
-
-  /* Result card */
-  .result-card {
-    animation: fadeIn 0.3s ease-out;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* Verdict banner */
-  .verdict {
-    padding: 20px 24px;
-    border-radius: var(--radius);
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .verdict.allow {
-    background: var(--allow-bg);
-    border: 1px solid var(--allow-border);
-    box-shadow: 0 0 30px var(--allow-glow);
-  }
-
-  .verdict.redact {
-    background: var(--redact-bg);
-    border: 1px solid var(--redact-border);
-    box-shadow: 0 0 30px var(--redact-glow);
-  }
-
-  .verdict.block {
-    background: var(--block-bg);
-    border: 1px solid var(--block-border);
-    box-shadow: 0 0 30px var(--block-glow);
-  }
-
-  .verdict-icon {
-    font-size: 32px;
-    flex-shrink: 0;
-  }
-
-  .verdict-content h2 {
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: -0.3px;
-  }
-
-  .verdict.allow h2 { color: var(--allow-text); }
-  .verdict.redact h2 { color: var(--redact-text); }
-  .verdict.block h2 { color: var(--block-text); }
-
-  .verdict-content p {
-    font-size: 14px;
-    color: var(--text-muted);
-    margin-top: 2px;
-  }
-
-  /* Meta row */
-  .meta-row {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-  }
-
-  .meta-tag {
-    font-family: var(--mono);
-    font-size: 12px;
-    padding: 5px 12px;
-    border-radius: 6px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-  }
-
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.6; }
+  .header { padding: 32px 40px 24px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, rgba(59,130,246,0.04) 0%, transparent 100%); }
+  .header-top { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+  .shield-icon { width: 36px; height: 36px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+  .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .header p { color: var(--text-muted); font-size: 14px; max-width: 600px; }
+  .header .badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); color: #93c5fd; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; margin-top: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .badge::before { content: ''; width: 6px; height: 6px; background: #3b82f6; border-radius: 50%; animation: pulse-dot 2s ease-in-out infinite; }
+  @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .main { display: grid; grid-template-columns: 1fr 1fr; min-height: calc(100vh - 120px); }
+  .panel-input { padding: 32px 40px; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+  .panel-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-dim); margin-bottom: 12px; }
+  .prompt-textarea { flex: 1; min-height: 240px; max-height: 400px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; font-family: var(--font); font-size: 15px; color: var(--text); resize: none; outline: none; transition: border-color 0.2s, box-shadow 0.2s; line-height: 1.7; }
+  .prompt-textarea::placeholder { color: var(--text-dim); }
+  .prompt-textarea:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
+  .char-count { font-family: var(--mono); font-size: 12px; color: var(--text-dim); text-align: right; margin-top: 8px; }
+  .button-row { display: flex; gap: 10px; margin-top: 16px; }
+  .btn-scan { flex: 1; padding: 14px 24px; background: linear-gradient(135deg, #3b82f6, #2563eb); border: none; border-radius: var(--radius-sm); color: white; font-family: var(--font); font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-scan:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4); }
+  .btn-scan:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-clear { padding: 14px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-muted); font-family: var(--font); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+  .btn-clear:hover { border-color: var(--text-dim); color: var(--text); }
+  .samples { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .samples-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-dim); margin-bottom: 10px; }
+  .sample-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { padding: 6px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; font-size: 12px; color: var(--text-muted); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+  .chip:hover { border-color: var(--accent); color: var(--text); background: rgba(59, 130, 246, 0.05); }
+  .chip.phi { border-color: rgba(220, 38, 38, 0.3); } .chip.phi:hover { border-color: #dc2626; color: var(--block-text); }
+  .chip.pii { border-color: rgba(202, 138, 4, 0.3); } .chip.pii:hover { border-color: #ca8a04; color: var(--redact-text); }
+  .chip.clean { border-color: rgba(22, 163, 74, 0.3); } .chip.clean:hover { border-color: #16a34a; color: var(--allow-text); }
+  .chip.cred { border-color: rgba(220, 38, 38, 0.3); } .chip.cred:hover { border-color: #dc2626; color: var(--block-text); }
+  .panel-result { padding: 32px 40px; display: flex; flex-direction: column; overflow-y: auto; }
+  .empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--text-dim); }
+  .empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+  .empty-state p { font-size: 14px; line-height: 1.6; }
+  .scanning-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .scan-animation { width: 48px; height: 48px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .scanning-text { color: var(--text-muted); font-size: 14px; }
+  .result-card { animation: fadeIn 0.3s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .verdict { padding: 20px 24px; border-radius: var(--radius); margin-bottom: 20px; display: flex; align-items: center; gap: 16px; }
+  .verdict.allow { background: var(--allow-bg); border: 1px solid var(--allow-border); box-shadow: 0 0 30px var(--allow-glow); }
+  .verdict.redact { background: var(--redact-bg); border: 1px solid var(--redact-border); box-shadow: 0 0 30px var(--redact-glow); }
+  .verdict.block { background: var(--block-bg); border: 1px solid var(--block-border); box-shadow: 0 0 30px var(--block-glow); }
+  .verdict-icon { font-size: 32px; flex-shrink: 0; }
+  .verdict-content h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+  .verdict.allow h2 { color: var(--allow-text); } .verdict.redact h2 { color: var(--redact-text); } .verdict.block h2 { color: var(--block-text); }
+  .verdict-content p { font-size: 14px; color: var(--text-muted); margin-top: 2px; }
+  .meta-row { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  .meta-tag { font-family: var(--mono); font-size: 12px; padding: 5px 12px; border-radius: 6px; background: var(--surface); border: 1px solid var(--border); color: var(--text-muted); }
   .meta-tag span { color: var(--text); font-weight: 500; }
-
-  /* Detail sections */
-  .detail-section {
-    margin-bottom: 20px;
-  }
-
-  .detail-section h3 {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    color: var(--text-dim);
-    margin-bottom: 8px;
-  }
-
-  .detail-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 16px;
-    font-size: 14px;
-    line-height: 1.7;
-    color: var(--text);
-  }
-
-  /* Flagged content */
-  .flagged-list {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .flagged-item {
-    font-family: var(--mono);
-    font-size: 13px;
-    padding: 8px 12px;
-    background: rgba(220, 38, 38, 0.08);
-    border: 1px solid rgba(220, 38, 38, 0.2);
-    border-radius: 6px;
-    color: var(--block-text);
-  }
-
-  /* Redacted prompt */
-  .redacted-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 16px;
-    font-size: 14px;
-    line-height: 1.7;
-    color: var(--text);
-    white-space: pre-wrap;
-  }
-
-  .redacted-box mark {
-    background: rgba(202, 138, 4, 0.2);
-    color: var(--redact-text);
-    padding: 1px 6px;
-    border-radius: 3px;
-    font-weight: 600;
-  }
-
-  /* Audit ref */
-  .audit-ref {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--text-dim);
-    padding: 10px 14px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    margin-top: 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .audit-ref::before {
-    content: '🔒';
-    font-size: 13px;
-  }
-
-  /* Responsive */
-  @media (max-width: 900px) {
-    .main { grid-template-columns: 1fr; }
-    .panel-input { border-right: none; border-bottom: 1px solid var(--border); }
-    .header { padding: 24px 20px 20px; }
-    .panel-input, .panel-result { padding: 24px 20px; }
-  }
+  .detail-section { margin-bottom: 20px; }
+  .detail-section h3 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-dim); margin-bottom: 8px; }
+  .detail-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; font-size: 14px; line-height: 1.7; color: var(--text); }
+  .flagged-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .flagged-item { font-family: var(--mono); font-size: 13px; padding: 8px 12px; background: rgba(220, 38, 38, 0.08); border: 1px solid rgba(220, 38, 38, 0.2); border-radius: 6px; color: var(--block-text); }
+  .redacted-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; font-size: 14px; line-height: 1.7; color: var(--text); white-space: pre-wrap; }
+  .redacted-box mark { background: rgba(202, 138, 4, 0.2); color: var(--redact-text); padding: 1px 6px; border-radius: 3px; font-weight: 600; }
+  .audit-ref { font-family: var(--mono); font-size: 11px; color: var(--text-dim); padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; margin-top: 16px; display: flex; align-items: center; gap: 8px; }
+  .audit-ref::before { content: '🔒'; font-size: 13px; }
+  .override-panel { display: flex; flex-direction: column; gap: 10px; }
+  .override-select { padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: var(--font); font-size: 14px; }
+  .override-textarea { padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: var(--font); font-size: 14px; min-height: 60px; resize: vertical; }
+  .btn-override { padding: 12px 16px; background: linear-gradient(135deg, #ca8a04, #a16207); border: none; border-radius: var(--radius-sm); color: white; font-family: var(--font); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .btn-override:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(202, 138, 4, 0.4); }
+  .override-warning { font-size: 12px; color: #94a3b8; background: rgba(202,138,4,0.08); border: 1px solid rgba(202,138,4,0.2); border-radius: 8px; padding: 12px; }
+  @media (max-width: 900px) { .main { grid-template-columns: 1fr; } .panel-input { border-right: none; border-bottom: 1px solid var(--border); } .header { padding: 24px 20px 20px; } .panel-input, .panel-result { padding: 24px 20px; } }
 </style>
 </head>
 <body>
-
 <div class="header">
   <div class="header-top">
     <div class="shield-icon">🛡️</div>
@@ -514,21 +113,15 @@
   <p>Paste any prompt below to scan for sensitive data before it reaches an AI tool. The system detects PHI, PII, credentials, financial data, and legal privilege in real time.</p>
   <div class="badge">Live — Connected to Azure OpenAI</div>
 </div>
-
 <div class="main">
-  <!-- Left: Input -->
   <div class="panel-input">
     <div class="panel-label">Prompt to scan</div>
-    <textarea id="prompt" class="prompt-textarea" placeholder="Type or paste a prompt here...&#10;&#10;Example: &quot;Rewrite this discharge summary: Patient Jane Martinez, DOB 04/22/1978...&quot;"></textarea>
+    <textarea id="prompt" class="prompt-textarea" placeholder="Type or paste a prompt here..."></textarea>
     <div class="char-count"><span id="charCount">0</span> / 10,000</div>
-
     <div class="button-row">
-      <button id="scanBtn" class="btn-scan" onclick="scanPrompt()">
-        <span id="scanText">🔍 Scan Prompt</span>
-      </button>
+      <button id="scanBtn" class="btn-scan" onclick="scanPrompt()"><span id="scanText">🔍 Scan Prompt</span></button>
       <button class="btn-clear" onclick="clearAll()">Clear</button>
     </div>
-
     <div class="samples">
       <div class="samples-label">Try a sample prompt</div>
       <div class="sample-chips">
@@ -541,27 +134,16 @@
       </div>
     </div>
   </div>
-
-  <!-- Right: Results -->
   <div class="panel-result">
     <div class="panel-label">Classification result</div>
-
-    <div id="emptyState" class="empty-state">
-      <div class="icon">🛡️</div>
-      <p>Paste a prompt and click <strong>Scan Prompt</strong><br>to see the AI classification result.</p>
-    </div>
-
-    <div id="scanningState" class="scanning-state" style="display:none">
-      <div class="scan-animation"></div>
-      <div class="scanning-text">Analyzing prompt with Azure OpenAI...</div>
-    </div>
-
+    <div id="emptyState" class="empty-state"><div class="icon">🛡️</div><p>Paste a prompt and click <strong>Scan Prompt</strong><br>to see the AI classification result.</p></div>
+    <div id="scanningState" class="scanning-state" style="display:none"><div class="scan-animation"></div><div class="scanning-text">Analyzing prompt with Azure OpenAI...</div></div>
     <div id="resultCard" class="result-card" style="display:none"></div>
   </div>
 </div>
-
 <script>
 const API_URL = 'https://fn-promptguard-061l6f.azurewebsites.net/api/classify';
+const OVERRIDE_URL = 'https://fn-promptguard-061l6f.azurewebsites.net/api/override';
 
 const SAMPLES = {
   clean: "What's the best way to set up Azure Monitor alerts for CPU usage spikes on a virtual machine?",
@@ -572,40 +154,24 @@ const SAMPLES = {
   fake: "Generate sample patient data for testing our new intake form. I need 5 fake patients with names, DOBs, and insurance IDs."
 };
 
+let lastResult = null;
+let lastPrompt = '';
+
 const textarea = document.getElementById('prompt');
 const charCount = document.getElementById('charCount');
-const scanBtn = document.getElementById('scanBtn');
-const scanText = document.getElementById('scanText');
+textarea.addEventListener('input', () => { charCount.textContent = textarea.value.length; });
 
-textarea.addEventListener('input', () => {
-  charCount.textContent = textarea.value.length;
-});
-
-function loadSample(key) {
-  textarea.value = SAMPLES[key];
-  charCount.textContent = textarea.value.length;
-  textarea.focus();
-}
-
-function clearAll() {
-  textarea.value = '';
-  charCount.textContent = '0';
-  document.getElementById('emptyState').style.display = 'flex';
-  document.getElementById('scanningState').style.display = 'none';
-  document.getElementById('resultCard').style.display = 'none';
-}
+function loadSample(key) { textarea.value = SAMPLES[key]; charCount.textContent = textarea.value.length; textarea.focus(); }
+function clearAll() { textarea.value = ''; charCount.textContent = '0'; document.getElementById('emptyState').style.display = 'flex'; document.getElementById('scanningState').style.display = 'none'; document.getElementById('resultCard').style.display = 'none'; lastResult = null; lastPrompt = ''; }
 
 async function scanPrompt() {
   const prompt = textarea.value.trim();
   if (!prompt) return;
-
-  // Show scanning
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('resultCard').style.display = 'none';
   document.getElementById('scanningState').style.display = 'flex';
-  scanBtn.disabled = true;
-  scanBtn.classList.add('scanning');
-  scanText.textContent = '⏳ Scanning...';
+  document.getElementById('scanBtn').disabled = true;
+  document.getElementById('scanText').textContent = '⏳ Scanning...';
 
   try {
     const response = await fetch(API_URL, {
@@ -613,15 +179,14 @@ async function scanPrompt() {
       headers: { 'Content-Type': 'application/json', 'X-User-ID': 'sim-ui-demo' },
       body: JSON.stringify({ prompt })
     });
-
     const result = await response.json();
+    lastResult = result;
+    lastPrompt = prompt;
     renderResult(result);
-  } catch (err) {
-    renderError(err.message);
-  } finally {
-    scanBtn.disabled = false;
-    scanBtn.classList.remove('scanning');
-    scanText.textContent = '🔍 Scan Prompt';
+  } catch (err) { renderError(err.message); }
+  finally {
+    document.getElementById('scanBtn').disabled = false;
+    document.getElementById('scanText').textContent = '🔍 Scan Prompt';
   }
 }
 
@@ -629,97 +194,77 @@ function renderResult(r) {
   document.getElementById('scanningState').style.display = 'none';
   const card = document.getElementById('resultCard');
   card.style.display = 'block';
-
   const action = (r.action || 'UNKNOWN').toUpperCase();
   const cls = action === 'ALLOW' ? 'allow' : action === 'REDACT' ? 'redact' : 'block';
   const icon = action === 'ALLOW' ? '✅' : action === 'REDACT' ? '✂️' : '⛔';
   const label = action === 'ALLOW' ? 'Safe to Proceed' : action === 'REDACT' ? 'Sensitive Content — Redacted Version Available' : 'Blocked — Sensitive Data Detected';
 
-  let html = `
-    <div class="verdict ${cls}">
-      <div class="verdict-icon">${icon}</div>
-      <div class="verdict-content">
-        <h2>${action}</h2>
-        <p>${label}</p>
-      </div>
-    </div>
+  let html = '<div class="verdict ' + cls + '"><div class="verdict-icon">' + icon + '</div><div class="verdict-content"><h2>' + action + '</h2><p>' + label + '</p></div></div>';
+  html += '<div class="meta-row"><div class="meta-tag">Category: <span>' + (r.category||'—') + '</span></div><div class="meta-tag">Severity: <span>' + (r.severity||'—') + '</span></div><div class="meta-tag">Confidence: <span>' + (r.confidence||'—') + '</span></div></div>';
+  html += '<div class="detail-section"><h3>AI Assessment</h3><div class="detail-box">' + escapeHtml(r.summary||'') + '</div></div>';
+  html += '<div class="detail-section"><h3>Recommended Action</h3><div class="detail-box">' + escapeHtml(r.recommended_action||'—') + '</div></div>';
 
-    <div class="meta-row">
-      <div class="meta-tag">Category: <span>${r.category || '—'}</span></div>
-      <div class="meta-tag">Severity: <span>${r.severity || '—'}</span></div>
-      <div class="meta-tag">Confidence: <span>${r.confidence || '—'}</span></div>
-    </div>
-
-    <div class="detail-section">
-      <h3>AI Assessment</h3>
-      <div class="detail-box">${r.summary || 'No summary available.'}</div>
-    </div>
-
-    <div class="detail-section">
-      <h3>Recommended Action</h3>
-      <div class="detail-box">${r.recommended_action || '—'}</div>
-    </div>
-  `;
-
-  // Flagged content
   if (r.flagged_content && r.flagged_content.length > 0) {
-    html += `
-      <div class="detail-section">
-        <h3>Flagged Content</h3>
-        <ul class="flagged-list">
-          ${r.flagged_content.map(f => `<li class="flagged-item">${escapeHtml(f)}</li>`).join('')}
-        </ul>
-      </div>
-    `;
+    html += '<div class="detail-section"><h3>Flagged Content</h3><ul class="flagged-list">';
+    r.flagged_content.forEach(function(f) { html += '<li class="flagged-item">' + escapeHtml(f) + '</li>'; });
+    html += '</ul></div>';
   }
 
-  // Redacted prompt
   if (r.redacted_prompt) {
-    const highlighted = escapeHtml(r.redacted_prompt).replace(
-      /\[REDACTED[^\]]*\]/g,
-      match => `<mark>${match}</mark>`
-    );
-    html += `
-      <div class="detail-section">
-        <h3>Redacted Version — Safe to Use</h3>
-        <div class="redacted-box">${highlighted}</div>
-      </div>
-    `;
+    var highlighted = escapeHtml(r.redacted_prompt).replace(/\[REDACTED[^\]]*\]/g, function(m) { return '<mark>' + m + '</mark>'; });
+    html += '<div class="detail-section"><h3>Redacted Version — Safe to Use</h3><div class="redacted-box">' + highlighted + '</div></div>';
   }
 
-  // Audit reference
-  if (r.audit_ref) {
-    html += `<div class="audit-ref">Logged to compliance audit trail: ${r.audit_ref}</div>`;
+  // Override section for BLOCK and REDACT
+  if (action === 'BLOCK' || action === 'REDACT') {
+    html += '<div class="detail-section"><h3>Need to proceed anyway?</h3><div class="override-panel" id="overridePanel">';
+    html += '<select id="overrideReason" class="override-select"><option value="">Select override reason...</option><option value="approved_use_case">Approved use case</option><option value="test_data">Test data only</option><option value="client_authorized">Client authorized</option><option value="medical_necessity">Medical necessity</option><option value="other">Other (explain below)</option></select>';
+    html += '<textarea id="overrideJustification" class="override-textarea" placeholder="Explain why this override is necessary..."></textarea>';
+    html += '<div class="override-warning">⚠️ This override will be logged to the compliance audit trail and your manager will be notified automatically.</div>';
+    html += '<button class="btn-override" onclick="submitOverride()">Submit Override — Manager Will Be Notified</button>';
+    html += '</div></div>';
   }
 
+  if (r.audit_ref) { html += '<div class="audit-ref">Logged to compliance audit trail: ' + r.audit_ref + '</div>'; }
   card.innerHTML = html;
 }
 
 function renderError(msg) {
   document.getElementById('scanningState').style.display = 'none';
-  const card = document.getElementById('resultCard');
+  var card = document.getElementById('resultCard');
   card.style.display = 'block';
-  card.innerHTML = `
-    <div class="verdict block">
-      <div class="verdict-icon">⚠️</div>
-      <div class="verdict-content">
-        <h2>Error</h2>
-        <p>${escapeHtml(msg)}</p>
-      </div>
-    </div>
-  `;
+  card.innerHTML = '<div class="verdict block"><div class="verdict-icon">⚠️</div><div class="verdict-content"><h2>Error</h2><p>' + escapeHtml(msg) + '</p></div></div>';
 }
 
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+async function submitOverride() {
+  var reason = document.getElementById('overrideReason').value;
+  var justification = document.getElementById('overrideJustification').value.trim();
+  if (!reason) { alert('Please select a reason.'); return; }
+  if (reason === 'other' && !justification) { alert('Please provide justification.'); return; }
+
+  try {
+    var resp = await fetch(OVERRIDE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-User-ID': 'sim-ui-demo' },
+      body: JSON.stringify({
+        prompt: lastPrompt,
+        reason: reason,
+        justification: justification || reason,
+        original_action: lastResult.action,
+        original_category: lastResult.category,
+        original_severity: lastResult.severity
+      })
+    });
+    var data = await resp.json();
+    var panel = document.getElementById('overridePanel');
+    panel.innerHTML = '<div style="color:#facc15;font-size:14px;padding:12px;background:rgba(202,138,4,0.1);border-radius:8px;border:1px solid rgba(202,138,4,0.3);">✅ Override accepted. Logged to audit trail: ' + (data.audit_ref || 'pending') + '<br>Manager notification: ' + (data.manager_notified ? 'Sent' : 'Not configured') + '</div>';
+  } catch (err) {
+    alert('Override failed: ' + err.message);
+  }
 }
 
-// Allow Ctrl+Enter to scan
-textarea.addEventListener('keydown', (e) => {
-  if (e.ctrlKey && e.key === 'Enter') scanPrompt();
-});
+function escapeHtml(text) { var div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+textarea.addEventListener('keydown', function(e) { if (e.ctrlKey && e.key === 'Enter') scanPrompt(); });
 </script>
 </body>
 </html>

@@ -29,3 +29,7 @@ output "openai_endpoint" {
 output "unique_suffix" {
   value = random_string.suffix.result
 }
+
+output "override_logic_app_name" {
+  value = azurerm_logic_app_workflow.override_notify.name
+}

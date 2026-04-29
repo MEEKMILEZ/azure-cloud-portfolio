@@ -5,6 +5,7 @@
  */
 
 const API_URL = 'https://fn-promptguard-061l6f.azurewebsites.net/api/classify';
+const OVERRIDE_URL = 'https://fn-promptguard-061l6f.azurewebsites.net/api/override';
 let isScanning = false;
 let guardianEnabled = true;
 
@@ -198,6 +199,14 @@ function showModal(result, originalText, onAllow, onBlock) {
     });
   }
 
+  // Override handler
+  const overrideBtn = document.getElementById('pg-btn-override');
+  if (overrideBtn) {
+    overrideBtn.addEventListener('click', () => {
+      showOverrideForm(overlay, result, originalText, onAllow, onBlock);
+    });
+  }
+
   // Close on overlay click
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) {
@@ -329,6 +338,75 @@ function interceptSubmit(platform) {
       isScanning = false;
     }
   }, true);
+}
+
+/**
+ * Show override justification form
+ */
+function showOverrideForm(overlay, result, originalText, onAllow, onBlock) {
+  const modal = overlay.querySelector('.pg-modal');
+  modal.innerHTML = `
+    <div class="pg-header">
+      <div class="pg-shield">🛡️</div>
+      <div class="pg-title">Override — Justification Required</div>
+    </div>
+    <div class="pg-section">
+      <div class="pg-section-label">Reason for override</div>
+      <select id="pg-override-reason" style="width:100%;padding:10px;background:#1a2236;border:1px solid #1e2a3e;border-radius:8px;color:#e2e8f0;font-size:14px;font-family:inherit;">
+        <option value="">Select a reason...</option>
+        <option value="approved_use_case">Approved use case</option>
+        <option value="test_data">Test data only</option>
+        <option value="client_authorized">Client authorized</option>
+        <option value="medical_necessity">Medical necessity</option>
+        <option value="other">Other (explain below)</option>
+      </select>
+    </div>
+    <div class="pg-section">
+      <div class="pg-section-label">Justification</div>
+      <textarea id="pg-override-text" placeholder="Explain why this override is necessary..." style="width:100%;min-height:80px;padding:10px;background:#1a2236;border:1px solid #1e2a3e;border-radius:8px;color:#e2e8f0;font-size:14px;font-family:inherit;resize:vertical;"></textarea>
+    </div>
+    <div class="pg-section" style="font-size:12px;color:#94a3b8;background:rgba(202,138,4,0.08);border:1px solid rgba(202,138,4,0.2);border-radius:8px;padding:12px;">
+      ⚠️ This override will be logged to the compliance audit trail and your manager will be notified automatically.
+    </div>
+    <div class="pg-buttons">
+      <button class="pg-btn pg-btn-cancel" id="pg-override-cancel">Cancel</button>
+      <button class="pg-btn pg-btn-redact" id="pg-override-submit">Submit Override</button>
+    </div>
+  `;
+
+  document.getElementById('pg-override-cancel').addEventListener('click', () => {
+    overlay.remove();
+    onBlock();
+  });
+
+  document.getElementById('pg-override-submit').addEventListener('click', async () => {
+    const reason = document.getElementById('pg-override-reason').value;
+    const justification = document.getElementById('pg-override-text').value.trim();
+
+    if (!reason) { alert('Please select a reason.'); return; }
+    if (reason === 'other' && !justification) { alert('Please provide justification.'); return; }
+
+    try {
+      const resp = await fetch(OVERRIDE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-User-ID': 'chrome-extension' },
+        body: JSON.stringify({
+          prompt: originalText,
+          reason: reason,
+          justification: justification || reason,
+          original_action: result.action,
+          original_category: result.category,
+          original_severity: result.severity
+        })
+      });
+      const data = await resp.json();
+      overlay.remove();
+      onAllow(originalText);
+    } catch (err) {
+      console.error('[Prompt Guardian] Override failed:', err);
+      alert('Override submission failed. Please try again.');
+    }
+  });
 }
 
 /**
