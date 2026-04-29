@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  body {
+    width: 280px;
+    font-family: 'Segoe UI', -apple-system, sans-serif;
+    background: #111827;
+    color: #e2e8f0;
+    margin: 0;
+    padding: 20px;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .shield {
+    font-size: 20px;
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .title {
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: #1a2236;
+    border: 1px solid #1e2a3e;
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+
+  .status-text {
+    font-size: 13px;
+    color: #94a3b8;
+  }
+
+  .status-text strong {
+    color: #e2e8f0;
+  }
+
+  /* Toggle switch */
+  .toggle {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    cursor: pointer;
+  }
+
+  .toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .toggle-slider {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #374151;
+    border-radius: 12px;
+    transition: 0.2s;
+  }
+
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.2s;
+  }
+
+  .toggle input:checked + .toggle-slider {
+    background: #16a34a;
+  }
+
+  .toggle input:checked + .toggle-slider::before {
+    transform: translateX(20px);
+  }
+
+  .info {
+    font-size: 11px;
+    color: #64748b;
+    line-height: 1.5;
+    margin-top: 8px;
+  }
+
+  .platforms {
+    font-size: 11px;
+    color: #475569;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #1e2a3e;
+  }
+
+  .platforms strong {
+    color: #94a3b8;
+    display: block;
+    margin-bottom: 4px;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="shield">🛡️</div>
+    <div class="title">Prompt Guardian</div>
+  </div>
+
+  <div class="status">
+    <div class="status-text">Protection: <strong id="statusLabel">Active</strong></div>
+    <label class="toggle">
+      <input type="checkbox" id="toggleGuardian" checked>
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
+
+  <div class="info">
+    When enabled, every prompt you submit to an AI tool is scanned for sensitive data before it leaves your browser.
+  </div>
+
+  <div class="platforms">
+    <strong>Protected platforms:</strong>
+    ChatGPT · Claude · Copilot
+  </div>
+
+  <script>
+    const toggle = document.getElementById('toggleGuardian');
+    const label = document.getElementById('statusLabel');
+
+    chrome.storage.local.get(['guardianEnabled'], (result) => {
+      const enabled = result.guardianEnabled !== false;
+      toggle.checked = enabled;
+      label.textContent = enabled ? 'Active' : 'Disabled';
+      label.style.color = enabled ? '#4ade80' : '#f87171';
+    });
+
+    toggle.addEventListener('change', () => {
+      const enabled = toggle.checked;
+      chrome.storage.local.set({ guardianEnabled: enabled });
+      label.textContent = enabled ? 'Active' : 'Disabled';
+      label.style.color = enabled ? '#4ade80' : '#f87171';
+    });
+  </script>
+</body>
+</html>
