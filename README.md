@@ -21,6 +21,7 @@ Hands-on cloud infrastructure projects built in Microsoft Azure. Each project so
 | 06 | [Automated Backup Verification and Reporting](./06-automated-backup-verification) | Built automated backup monitoring that scans all vaults daily and emails a status report | Azure Automation, Recovery Services Vault, Logic Apps, Managed Identity, REST API |
 | 07 | [Self-Healing Infrastructure with IaC](./07-self-healing-infrastructure) | Deployed entire environment from Bicep, with automated monitoring, self-healing runbooks, and email notifications | Azure Bicep, Automation Runbooks, Azure Monitor, Logic Apps, Managed Identity |
 | 08 | [Cloud Cost Watchdog](./08-cloud-cost-watchdog) | Automated zombie resource detection and cost optimization across the entire subscription | Terraform, Azure Automation, REST API, Logic Apps, Managed Identity, FinOps |
+| 12 | [Microsoft 365 Tenant Deployment](./12-m365-tenant-deployment) | End-to-end M365 build-out for a small business — branding, identity, Exchange, SharePoint/OneDrive, anti-malware | M365 Admin Center, Exchange, SharePoint, OneDrive, Microsoft Graph PowerShell, Microsoft Defender |
 
 ## About
 
