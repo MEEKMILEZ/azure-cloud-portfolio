@@ -1,8 +1,0 @@
-.terraform/
-terraform.tfstate
-terraform.tfstate.backup
-*.tfstate
-*.tfstate.*
-local.settings.json
-__pycache__/
-.python_packages/
