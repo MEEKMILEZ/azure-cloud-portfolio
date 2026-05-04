@@ -91,7 +91,7 @@ If a user runs into trouble (a forgotten password the morning of a busy clinic d
 
 ### 1.5 Pick early release pilot users
 
-Selected two users (Katy and Mike) to receive Microsoft feature updates before they roll out to the wider organisation. This is a "release ring", a small controlled group that catches breaking changes before they hit the rest of the staff. In a clinic context, you do not want a Microsoft Outlook update breaking calendar invites the morning of a fully booked Monday.
+Selected two users (Katy and James) to receive Microsoft feature updates before they roll out to the wider organisation. This is a "release ring", a small controlled group that catches breaking changes before they hit the rest of the staff. In a clinic context, you do not want a Microsoft Outlook update breaking calendar invites the morning of a fully booked Monday.
 
 ![Two users selected for early Microsoft feature releases](images/05-early-release-users-selected.png)
 
@@ -108,7 +108,7 @@ Installed the **Microsoft.Graph** PowerShell module on the admin workstation, th
 
 ### 2.2 Create the two pilot users
 
-Used `New-MgUser` to provision Katy and Mike as the pilot user accounts. Doing it in PowerShell means the same script can be reused later to bulk create the rest of the staff from a CSV the office manager exports from the HR system.
+Used `New-MgUser` to provision Katy and James as the pilot user accounts. Doing it in PowerShell means the same script can be reused later to bulk create the rest of the staff from a CSV the office manager exports from the HR system.
 
 ![First pilot user (Katy Price) created via PowerShell](images/08-powershell-create-user-katy.png)
 ![Second pilot user created via PowerShell](images/09-powershell-create-user-second.png)
