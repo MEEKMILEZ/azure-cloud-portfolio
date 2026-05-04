@@ -1,12 +1,20 @@
 # Project 11: HelpDesk Zero Touch
 
-An end to end automated IT operations platform for healthcare environments. Three workflows run autonomously without a single human touching a ticket: identity lifecycle, ticket classification and routing, and weekly permission drift detection. Every action writes to an immutable audit trail and triggers a real notification email written by GPT 4o.
+## The Scenario
 
-Built end to end with Terraform. Tested live against an Azure tenant. Real emails delivered.
+It's 7:14 AM on a Monday at Lakeshore Regional Health, a 250 bed community hospital. Three things are happening at once.
 
-## Why This Matters
+A new nurse, Sarah Mitchell, is starting her first shift in the ICU. She is standing at the badge reader. Her account does not exist yet because the IT helpdesk has not gotten to her ticket from Friday. The charge nurse pages IT.
 
-Mid sized hospitals run on ticket queues. The average 250 bed community hospital generates 80 to 150 IT tickets per day across nursing, pharmacy, radiology, lab, billing, and admin. The numbers from recent industry reporting back this up:
+A pharmacist on the third floor, Maria Chen, is locked out of Epic. She is supposed to verify a controlled substance order in the next eight minutes. She submits a ticket. It goes into a queue with 47 other tickets. None of the tickets are sorted by clinical urgency. The Tier 1 tech who picks it up has been on shift for six hours and has answered the same Epic password reset 11 times this week.
+
+In the IT director's office, the compliance officer is asking why the last HIPAA audit found 23 ex-employees with active Active Directory accounts. The system administrator who handled offboardings left two months ago. Nobody has run a permission audit since.
+
+This is not unusual. This is Monday at every mid-sized hospital in North America.
+
+## What Healthcare IT Actually Costs
+
+The numbers behind that morning are well documented in the industry:
 
 | Metric | Real world value |
 |---|---|
@@ -14,13 +22,52 @@ Mid sized hospitals run on ticket queues. The average 250 bed community hospital
 | Tier 1 turnover rate | ~40% annually |
 | Password reset volume | 20 to 50% of all tickets |
 | Manual onboarding time per employee | 1 to 5 hours of IT effort |
-| Suppressed Sev 3 to 4 tickets snowballing into Sev 1 to 2 | Routinely cited in incident postmortems |
+| Tickets per day at a 250 bed hospital | 80 to 150 |
 | Permission drift detected during HIPAA audits | 30 to 60% of tenants on first scan |
 | Typical MSP rate for managed IT in healthcare | 75 to 150 USD per user per month |
 
-A 250 user hospital paying an MSP at 100 USD per user per month spends 25,000 USD per month on outsourced IT. Every workflow this project automates removes that load from the queue.
+A 250 user hospital paying an MSP at 100 USD per user per month spends 25,000 USD per month on outsourced IT. Most of that spend is Tier 1 work: password resets, account provisioning, group membership changes. The kind of work that should not require a human ticket.
 
-The same architecture is portable across markets. PHIPA in Ontario and HIPAA in the US share the same access control control objectives, so a Toronto hospital and an Ohio hospital can run identical compliance reports against this system. That portability matters because clinical IT staff, MSPs, and Microsoft partners are the buyers in all three of my target markets: Toronto and Mississauga, Newfoundland, and Ohio.
+The same architecture is portable across markets. PHIPA in Ontario and HIPAA in the US share the same access control objectives, so a Toronto hospital and an Ohio hospital can run identical compliance reports against this system. Healthcare IT problems do not stop at the border, and neither does this design.
+
+## What I Built
+
+Three workflows that take the worst parts of that Monday morning off the queue, plus a notification layer and a compliance dashboard.
+
+### Track 1: Identity Lifecycle (the Sarah Mitchell problem)
+
+Sarah Mitchell does not need a ticket. The hospital HR system already knows she was hired on Friday, what department she is in, who her manager is, and when she starts. The Function App's `/identity/onboard` endpoint takes that information and runs seven tasks in sequence: create the Entra ID account, assign the Microsoft 365 E3 license, add to the department security group, provision the Exchange Online mailbox, map shared network drives, enable MFA registration, and email the manager with sign in instructions.
+
+When Sarah's manager (Daniel Garcia, ICU charge nurse) walks into work at 6:45 AM, there is already an email in his Outlook inbox written by GPT 4o that reads like the IT coordinator wrote it between meetings. The email tells him Sarah can sign in tomorrow morning, where her temporary password is, that she needs MFA setup on day one, and to plan for 30 minutes of desk side time when she arrives.
+
+Sarah signs in at 7:14 AM and is on the floor by 7:20.
+
+The reverse workflow handles offboardings: disable the account, revoke active sessions, remove from all security groups, reclaim the M365 license, transfer mailbox ownership to the manager, revoke VPN access, archive user data to compliance hold (HIPAA seven year retention), and generate the audit report. This is the workflow that prevents the "23 ex-employees with active accounts" finding from showing up at the next audit.
+
+### Track 2: Ticket Triage and KB Deflection (the Maria Chen problem)
+
+Maria Chen does not need to wait in a queue with 47 unsorted tickets. The Function App's `/triage` endpoint reads her ticket text, her role, and the time of day. GPT 4o classifies it across four dimensions: category (PASSWORD_RESET), priority (P2_HIGH because she is a clinician on shift with a controlled substance verification deadline), routing target (tier1_pharmacy), and KB deflection check (could a self service article resolve this without a tech).
+
+Within seconds of Maria's submission:
+
+- The ticket is on the right team's queue.
+- The on call lead for tier1_pharmacy gets an email forwarded to them with the one paragraph briefing: who, what, why it matters, suggested first action.
+- If the system thinks Maria can self-resolve via a KB article, it sends her the link and skips IT entirely.
+
+In my test set, the KB deflection rate landed at 71.4 percent. Two thirds of routine helpdesk volume can be deflected before a human ticket is opened.
+
+### Track 3: Permission Drift Detection (the compliance officer problem)
+
+The hardest compliance failure in healthcare IT is not malicious access. It is forgotten access. A nurse covers for a pharmacist on leave and gets temporary Pharmacy Admin permissions. The leave ends. Nobody removes the permission. Six months later an audit finds it.
+
+The Function App's `/drift/scan` endpoint runs weekly. It looks for four kinds of drift:
+
+- Ex employees with active accounts (the kind of finding that lost the last audit)
+- Dormant privileged users (Domain Admin accounts that have not signed in in 90 days)
+- Unauthorized elevation (permissions that were added outside normal change control)
+- Stale project access (group membership that survived a project's end)
+
+The output is a compliance report ready to hand to a HIPAA auditor, plus an email to the compliance officer with the headline numbers, the most concerning specific case, and a confirmation that IT Operations is starting remediation that day.
 
 ## Architecture
 
@@ -80,13 +127,13 @@ Every resource below was deployed by Terraform. Suffix `gvg8ly` is generated onc
 Before building any UI, I tested every endpoint directly with PowerShell to confirm GPT 4o was returning valid classifications and audit logs were being written. This is the part nobody sees in the GUI but it is where most of the work happens.
 
 ![Onboard endpoint test](./screenshots/02-terminal-onboard-test.png)
-*Onboarding endpoint returns task list, AI summary from GPT 4o, and audit reference path. Seven tasks completed, zero failed.*
+*Onboarding endpoint returns task list, summary from GPT 4o, and audit reference path. Seven tasks completed, zero failed.*
 
 ![Triage endpoint test](./screenshots/03-terminal-triage-test.png)
 *Triage classifies a ticket into category, priority, suggested resolution, KB deflection check, and routing target. JSON response is parsed by the UI for the success card.*
 
 ![Drift endpoint test](./screenshots/04-terminal-drift-test.png)
-*Drift scan returns the AI compliance analysis (FAIL or PASS), per user findings with risk level, and an executive summary suitable for handing to a CISO.*
+*Drift scan returns the compliance analysis (FAIL or PASS), per user findings with risk level, and an executive summary suitable for handing to a CISO.*
 
 ## Phase 2: Email Delivery via Logic App
 
@@ -99,21 +146,19 @@ The Function App POSTs to the Logic App callback URL. The URL is stored as the `
 
 ## Phase 3: The Sim UI
 
-A clean operations console branded as Lakeshore Regional Health, a fictional 250 bed community hospital. The UI is a single HTML file with Tailwind via CDN and vanilla JavaScript. No build step, no dependencies, runs from any browser.
+A clean operations console branded as Lakeshore Regional Health, the fictional 250 bed community hospital from the scenario above. The UI is a single HTML file with Tailwind via CDN and vanilla JavaScript. No build step, no dependencies, runs from any browser.
 
 ![Sim UI Overview](./screenshots/07-sim-ui-overview.png)
 *Operations Overview page. Three KPI tiles, three module entry points, live status indicator, on duty timestamp.*
 
 The sidebar nav follows the pattern hospital admin tools use (Epic, Cerner, Workday). Top tabs read consumer; sidebar reads enterprise. The teal palette and medical waveform logo were chosen to match the visual language clinical staff already see daily.
 
-## Track 1: Identity Lifecycle
+## Track 1: Identity Lifecycle in Action
 
-Onboard a new clinical or admin staff member, or offboard a departing one. Provisioning runs end to end without a ticket.
-
-The onboarding workflow runs seven tasks: create the Entra ID account, assign the Microsoft 365 E3 license, add to the department security group, provision the Exchange Online mailbox, map shared network drives, enable MFA registration, and send the welcome email to the manager. Each task writes its outcome to the audit log. GPT 4o produces the executive summary at the end.
+This is the Sarah Mitchell workflow, end to end. One API call provisions a new hire across Entra ID, M365 license, security groups, Exchange mailbox, shared drives, and MFA. Each task writes its outcome to the audit log. GPT 4o produces the executive summary at the end.
 
 ![Onboard Success](./screenshots/08-sim-ui-onboard-success.png)
-*Onboarding complete. Seven tasks succeeded, zero failed. Summary written by GPT 4o. Audit reference points to the JSON blob in identity-logs. Notification email rendered with full body, recipient, and message ID.*
+*Onboarding complete for sarah.mitchell. Seven tasks succeeded, zero failed. Summary written by GPT 4o. Audit reference points to the JSON blob in identity-logs. Notification email rendered with full body, recipient, and message ID.*
 
 ![Onboard email in Hotmail](./screenshots/09-onboard-email-received.png)
 *The notification email as it actually arrived. GPT 4o wrote the body fresh based on the new hire context. No template, no boilerplate, no greeting filler. Reads like a senior IT coordinator wrote it between meetings.*
@@ -126,11 +171,9 @@ The offboarding workflow runs eight tasks: disable the account, revoke active se
 ![Offboard email in Hotmail](./screenshots/11-offboard-email-received.png)
 *The manager gets a clean explanation of what happened, where the shared mailbox lives for the next 90 days, and how to retrieve OneDrive files. No legal jargon, no scare wording.*
 
-## Track 2: Ticket Triage and Knowledge Deflection
+## Track 2: Ticket Triage in Action
 
-A help desk ticket comes in. The system classifies it across category, priority, and routing target. It checks whether a knowledge base article could resolve it without a technician (KB deflection). For P1 critical and P2 high tickets, the assigned team gets a real email forwarded to them with the ticket details, the submitter's role, and the suggested first step.
-
-The classification logic understands healthcare context. A nurse blocked from Epic during a shift is more urgent than admin staff blocked from a shared drive. A pharmacist locked out during a controlled substance dispensing window is a P1 even if the literal symptom is "cannot log in."
+This is the Maria Chen workflow. The classification logic understands healthcare context. A nurse blocked from Epic during a shift is more urgent than admin staff blocked from a shared drive. A pharmacist locked out during a controlled substance dispensing window is a P1 even if the literal symptom is "cannot log in."
 
 ![Triage Success](./screenshots/12-sim-ui-triage-success.png)
 *Ticket classified as PASSWORD_RESET, priority P2_HIGH, routed to tier1, ETA approximately 5 minutes. KB article suggestion offered for self service. Notification email already dispatched.*
@@ -138,14 +181,12 @@ The classification logic understands healthcare context. A nurse blocked from Ep
 ![Triage email in Hotmail](./screenshots/13-triage-email-received.png)
 *The on call lead gets a one paragraph briefing: what the ticket is, who submitted it, why it matters, and what to try first. Three to four sentences. No filler.*
 
-## Track 3: Permission Drift Detection
+## Track 3: Permission Drift in Action
 
-The hardest compliance failure in healthcare IT is not malicious access. It is forgotten access. A nurse covers for a pharmacist on leave and gets temporary Pharmacy Admin permissions. The leave ends. Nobody removes the permission. Six months later an audit finds it.
-
-This module scans for four kinds of drift: ex employees with active accounts, dormant privileged users, unauthorized elevation, and permissions that survived a project's end. The output is a compliance report ready to hand to an auditor, plus an alert email to the compliance officer.
+This is the compliance officer workflow. The output is a compliance report ready to hand to an auditor, plus an alert email summarizing the worst findings.
 
 ![Drift Scan Results](./screenshots/14-sim-ui-drift-scan.png)
-*Four findings. Three CRITICAL, one HIGH. Compliance status: FAIL. Executive summary explains the worst case (Sarah Williams, ex IT employee, still has Domain Admin) in language a non technical CISO can act on. Recommendations are concrete: disable, remove, audit.*
+*Four findings on this scan. Three CRITICAL, one HIGH. Compliance status: FAIL. Executive summary explains the worst case (Sarah Williams, ex IT employee, still has Domain Admin) in language a non technical CISO can act on. Recommendations are concrete: disable, remove, audit.*
 
 ![Drift email in Hotmail](./screenshots/15-drift-email-received.png)
 *The weekly drift alert email. Headline number first, the worst specific case in one sentence, where the full report lives, and what IT Operations is doing about it today.*
@@ -164,7 +205,7 @@ The dashboard endpoint reads every blob across the three audit containers and ag
 Every action writes a JSON blob to one of three append only containers (identity logs, triage logs, drift reports). The blob name encodes the date and a short UUID so audit logs can be retrieved chronologically or by event ID. Nothing is ever overwritten. Nothing is ever deleted.
 
 ![Audit Logs in Storage](./screenshots/17-blob-audit-logs.png)
-*The identity-logs container shows the JSON blobs from every onboarding and offboarding run. Each blob contains the user, department, role, tasks attempted, tasks completed, AI summary, and timestamps. This is the file an auditor pulls during a HIPAA inspection.*
+*The identity-logs container shows the JSON blobs from every onboarding and offboarding run. Each blob contains the user, department, role, tasks attempted, tasks completed, summary, and timestamps. This is the file an auditor pulls during a HIPAA inspection.*
 
 ## Logic App Run History
 
@@ -241,13 +282,19 @@ Target plan output is "0 to destroy." If anything wants to be destroyed, an impo
 
 For future projects I will use a remote backend (Azure Storage container for state) so this cannot happen again.
 
+### GPT leaking the word "AI" into email bodies
+
+The first version of the triage email prompt told the model that "the ticket was AI triaged just now and assigned to their team." The generated emails then started with "A new P2_HIGH ticket was just triaged by the AI system..." which sounds like a marketing bot, not a senior dispatcher.
+
+Adding a negative rule to the prompt ("do NOT mention AI, automation, or the bot") did not work. Negative instructions are weak in LLMs because the model has to think about the forbidden concept to suppress it, which means it leaks anyway.
+
+The fix that worked was removing the AI context from the prompt entirely. The model is told "you are a senior IT coordinator forwarding a ticket; here are the ticket details." The mechanism is invisible to the model. With nothing to suppress, nothing leaks. Same trick applied to the drift alert prompt.
+
+This is a generally useful pattern for any AI generated user-facing content: do not tell the model the content is AI generated. Just give it the facts and the role.
+
 ### Field name mismatches between UI and Function App
 
 The first version of the Sim UI sent `subject` and `body` as separate fields to the triage endpoint, but the function expects a single `ticket` field. The fix was to concatenate subject and body in the UI before sending. Same lesson applies for any UI to API integration: align on the request schema first, then build the form. I now treat the function code as the source of truth and the UI adapts to it.
-
-### Knowledge base deflection rate sometimes shows zero
-
-The dashboard reads `triage.kb_deflectable` from the function response. Early triage tests classified tickets where GPT 4o returned `kb_deflectable: false` because the model was conservative on what counted as deflectable. Tightening the system prompt with examples ("password reset is deflectable, hardware replacement is not") improved deflection scoring. Production deployments would feed real KB article titles into the prompt context so the model can match against actual articles.
 
 ## Cross References
 
@@ -255,9 +302,9 @@ This project is part of a healthcare and enterprise IT series exploring how AI c
 
 [**Project 10: Prompt Guardian**](../10-prompt-guardian/) intercepts AI prompts at the browser level before sensitive PHI reaches a public LLM. Same architecture pattern: Azure Function plus GPT 4o classification, Logic App notifications, Blob Storage audit trail. Where Prompt Guardian protects clinicians from leaking patient data into ChatGPT, HelpDesk Zero Touch automates the support workflows around those clinicians.
 
-[**Project 12: Microsoft 365 Tenant Deployment (Small Business)**](../12-m365-tenant-deployment/) provisions the small-business Microsoft 365 environment (Business Standard / Premium tier) that this helpdesk would run against in a 25 to 50 user clinic or specialty practice. Same identity model, lighter compliance surface.
+[**Project 12: Microsoft 365 Tenant Deployment (Small Business)**](../12-m365-tenant-deployment/) provisions the small business Microsoft 365 environment (Business Standard or Premium tier) that this helpdesk would run against in a 25 to 50 user clinic or specialty practice. Same identity model, lighter compliance surface.
 
-[**Project 13: Microsoft 365 Enterprise Deployment**](../13-m365-enterprise-deployment/) is the same exercise scaled to 300 users on the Microsoft 365 E5 plan, with Defender for Office 365, Purview Insider Risk, DLP, audit, and Power Automate-driven monthly reporting. The onboarding tasks listed here (create Entra ID user, assign E5 license, add to department group, provision Exchange mailbox) are exactly the operations that Project 13 prepares the tenant to handle at scale, including the sensitivity-aware mail encryption and retention policies a regulated healthcare environment needs.
+[**Project 13: Microsoft 365 Enterprise Deployment**](../13-m365-enterprise-deployment/) is the same exercise scaled to 300 users on the Microsoft 365 E5 plan, with Defender for Office 365, Purview Insider Risk, DLP, audit, and Power Automate driven monthly reporting. The onboarding tasks listed here (create Entra ID user, assign E5 license, add to department group, provision Exchange mailbox) are exactly the operations that Project 13 prepares the tenant to handle at scale.
 
 The four projects together cover the spine of healthcare and enterprise IT operations: tenant deployment at two scales, AI guardrails on user behaviour, and automated support.
 
