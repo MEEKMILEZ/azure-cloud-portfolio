@@ -3,7 +3,7 @@ output "resource_group_name" {
 }
 
 output "unique_suffix" {
-  value = random_string.suffix.result
+  value = local.suffix
 }
 
 output "function_app_name" {

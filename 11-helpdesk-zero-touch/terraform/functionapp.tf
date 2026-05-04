@@ -1,5 +1,5 @@
 resource "azurerm_service_plan" "main" {
-  name                = "asp-helpdesk-${random_string.suffix.result}"
+  name                = "asp-helpdesk-${local.suffix}"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
   os_type             = "Linux"
@@ -9,7 +9,7 @@ resource "azurerm_service_plan" "main" {
 }
 
 resource "azurerm_linux_function_app" "main" {
-  name                       = "fn-helpdesk-${random_string.suffix.result}"
+  name                       = "fn-helpdesk-${local.suffix}"
   location                   = azurerm_resource_group.main.location
   resource_group_name        = azurerm_resource_group.main.name
   service_plan_id            = azurerm_service_plan.main.id
@@ -32,6 +32,11 @@ resource "azurerm_linux_function_app" "main" {
     "TRIAGE_LOG_CONTAINER"      = "triage-logs"
     "DRIFT_REPORT_CONTAINER"    = "drift-reports"
     "KB_CONTAINER"              = "kb-articles"
+
+    # Email integration via Logic App
+    "LOGIC_APP_NOTIFY_URL"      = azurerm_logic_app_trigger_http_request.notify_trigger.callback_url
+    "NOTIFY_FROM_NAME"          = "Lakeshore Regional IT"
+    "MANAGER_EMAIL_OVERRIDE"    = "Paschalnnenna@hotmail.com"
   }
 
   site_config {

@@ -1,5 +1,5 @@
 resource "azurerm_cognitive_account" "openai" {
-  name                  = "oai-helpdesk-${random_string.suffix.result}"
+  name                  = "oai-helpdesk-${local.suffix}"
   location              = var.openai_location
   resource_group_name   = azurerm_resource_group.main.name
   kind                  = "OpenAI"

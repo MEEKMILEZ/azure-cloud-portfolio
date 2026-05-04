@@ -1,5 +1,6 @@
 azure-functions
-openai>=1.0.0
-azure-storage-blob>=12.0.0
-azure-keyvault-secrets>=4.0.0
-azure-identity>=1.0.0
+openai
+azure-storage-blob
+azure-identity
+azure-keyvault-secrets
+requests

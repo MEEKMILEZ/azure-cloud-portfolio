@@ -8,6 +8,9 @@ from openai import AzureOpenAI
 from azure.storage.blob import BlobServiceClient
 import uuid
 
+# NEW: import the notification helper
+from notifications import send_notification
+
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 
 # ============================================================
@@ -86,6 +89,7 @@ def identity_onboard(req: func.HttpRequest) -> func.HttpResponse:
     department = body.get("department", "").strip()
     role = body.get("role", "").strip()
     manager = body.get("manager", "").strip()
+    manager_email = body.get("manager_email", "").strip() or manager
     start_date = body.get("start_date", "").strip()
 
     if not user_name or not department:
@@ -137,6 +141,7 @@ All tasks succeeded with zero errors."""
         "department": department,
         "role": role,
         "manager": manager,
+        "manager_email": manager_email,
         "start_date": start_date,
         "tasks_completed": len(results),
         "tasks_failed": 0,
@@ -145,6 +150,19 @@ All tasks succeeded with zero errors."""
     }
     audit_ref = write_log(os.environ.get("IDENTITY_LOG_CONTAINER", "identity-logs"), log_data, "onboard")
 
+    # Send real email to manager via Logic App + Office 365
+    email_result = send_notification(
+        notification_type="onboard",
+        recipient=manager_email,
+        context={
+            "user_name": user_name,
+            "department": department,
+            "role": role or "team member",
+            "manager_name": manager.split("@")[0].replace(".", " ").title() if manager else "there"
+        },
+        audit_ref=audit_ref
+    )
+
     return json_response({
         "status": "onboarding_complete",
         "user_name": user_name,
@@ -152,7 +170,8 @@ All tasks succeeded with zero errors."""
         "tasks_completed": len(results),
         "tasks_failed": 0,
         "ai_summary": ai_summary,
-        "audit_ref": audit_ref
+        "audit_ref": audit_ref,
+        "email": email_result
     })
 
 
@@ -170,6 +189,7 @@ def identity_offboard(req: func.HttpRequest) -> func.HttpResponse:
     department = body.get("department", "").strip()
     reason = body.get("reason", "voluntary_resignation").strip()
     last_day = body.get("last_day", "").strip()
+    manager_email = body.get("manager_email", "").strip()
 
     if not user_name:
         return json_response({"error": "user_name is required"}, 400)
@@ -216,6 +236,7 @@ All access has been revoked. No tasks failed."""
         "department": department,
         "reason": reason,
         "last_day": last_day,
+        "manager_email": manager_email,
         "tasks_completed": len(results),
         "tasks_failed": 0,
         "task_details": results,
@@ -224,6 +245,21 @@ All access has been revoked. No tasks failed."""
     }
     audit_ref = write_log(os.environ.get("IDENTITY_LOG_CONTAINER", "identity-logs"), log_data, "offboard")
 
+    # Send real email to manager via Logic App + Office 365
+    email_result = send_notification(
+        notification_type="offboard",
+        recipient=manager_email,
+        context={
+            "user_name": user_name,
+            "department": department or "their department",
+            "reason": reason,
+            "last_day": last_day or "today",
+            "manager_name": manager_email.split("@")[0].replace(".", " ").title() if manager_email else "there"
+        },
+        audit_ref=audit_ref,
+        importance="High"
+    )
+
     return json_response({
         "status": "offboarding_complete",
         "user_name": user_name,
@@ -231,7 +267,8 @@ All access has been revoked. No tasks failed."""
         "tasks_failed": 0,
         "access_revoked": True,
         "ai_summary": ai_summary,
-        "audit_ref": audit_ref
+        "audit_ref": audit_ref,
+        "email": email_result
     })
 
 
@@ -286,6 +323,8 @@ def triage_ticket(req: func.HttpRequest) -> func.HttpResponse:
 
     ticket_text = body.get("ticket", "").strip()
     submitter = body.get("submitter", "anonymous").strip()
+    submitter_role = body.get("submitter_role", "Staff member").strip()
+    subject = body.get("subject", "").strip()
     ticket_id = body.get("ticket_id", f"TK-{uuid.uuid4().hex[:6].upper()}")
 
     if not ticket_text:
@@ -320,6 +359,8 @@ def triage_ticket(req: func.HttpRequest) -> func.HttpResponse:
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "ticket_id": ticket_id,
         "submitter": submitter,
+        "submitter_role": submitter_role,
+        "subject": subject,
         "ticket_text_hash": hashlib.sha256(ticket_text.encode()).hexdigest(),
         "ticket_length": len(ticket_text),
         "category": triage_result.get("category"),
@@ -330,6 +371,27 @@ def triage_ticket(req: func.HttpRequest) -> func.HttpResponse:
     }
     audit_ref = write_log(os.environ.get("TRIAGE_LOG_CONTAINER", "triage-logs"), log_data, "triage")
     triage_result["audit_ref"] = audit_ref
+
+    # Send urgent email if priority is P1 or P2
+    priority = triage_result.get("priority", "")
+    if priority in ("P1_CRITICAL", "P2_HIGH"):
+        email_result = send_notification(
+            notification_type="triage_urgent",
+            recipient="",  # MANAGER_EMAIL_OVERRIDE will route to test inbox
+            context={
+                "priority": priority,
+                "subject": subject or triage_result.get("summary", "(no subject)"),
+                "submitter_role": submitter_role,
+                "assigned_team": triage_result.get("route_to", "tier1"),
+                "ai_summary": triage_result.get("summary", ""),
+                "suggested_resolution": triage_result.get("suggested_resolution", "")
+            },
+            audit_ref=audit_ref,
+            importance="High" if priority == "P1_CRITICAL" else "Normal"
+        )
+        triage_result["email"] = email_result
+    else:
+        triage_result["email"] = {"sent": False, "skipped": True, "reason": f"Priority {priority} below email threshold"}
 
     return json_response(triage_result)
 
@@ -454,6 +516,31 @@ Write a JSON response with:
 
     audit_ref = write_log(os.environ.get("DRIFT_REPORT_CONTAINER", "drift-reports"), report, "drift-scan")
     report["audit_ref"] = audit_ref
+
+    # Send compliance alert email
+    top_finding = next(
+        (u for u in simulated_users if u.get("risk_level") == "CRITICAL"),
+        simulated_users[0] if simulated_users else None
+    )
+    top_finding_text = (
+        f"{top_finding['display_name']} ({top_finding['role']}, {top_finding['department']}): {top_finding['drift_reason']}"
+        if top_finding else "No specific top finding"
+    )
+
+    email_result = send_notification(
+        notification_type="drift_alert",
+        recipient="",  # MANAGER_EMAIL_OVERRIDE routes to test inbox
+        context={
+            "users_with_drift": ai_analysis.get("users_with_drift", len(simulated_users)),
+            "critical_findings": ai_analysis.get("critical_findings", 0),
+            "high_findings": ai_analysis.get("high_findings", 0),
+            "top_finding": top_finding_text,
+            "audit_ref": audit_ref or "(audit log unavailable)"
+        },
+        audit_ref=audit_ref,
+        importance="High"
+    )
+    report["email"] = email_result
 
     return json_response(report)
 
