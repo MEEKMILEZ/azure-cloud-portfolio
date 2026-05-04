@@ -351,4 +351,4 @@ Ready to be torn down when no longer needed: `terraform destroy` removes everyth
 
 ---
 
-Built by MEEK as part of an Azure cloud portfolio targeting healthcare IT, MSP, and Microsoft partner roles in Toronto, Newfoundland, and Ohio.
+Built by MEEK as part of an Azure cloud portfolio targeting healthcare IT, MSP, and Microsoft partner roles.
