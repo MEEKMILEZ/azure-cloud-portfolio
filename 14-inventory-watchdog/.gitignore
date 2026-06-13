@@ -1,0 +1,7 @@
+# Terraform state and working files. State can contain sensitive values.
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+
+# Generated data. Reproducible by running generate_data.py with seed 14.
+data/
