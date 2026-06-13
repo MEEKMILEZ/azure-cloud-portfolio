@@ -30,7 +30,8 @@ and the recommended next step.
 5. A closing line with the three actions to take before next Monday.
 
 Rules: use only the numbers provided, never invent or recalculate \
-figures. Round dollars to whole numbers with thousands separators. \
+figures. Never use em dashes, en dashes, hyphens as separators, or \
+parentheses anywhere. Use commas, colons, and periods instead. Round dollars to whole numbers with thousands separators. \
 Refer to items by SKU and short description. Plain text only, no \
 markdown symbols. Keep it under 450 words. Write as a human operations \
 analyst signing off as Inventory Watchdog.
