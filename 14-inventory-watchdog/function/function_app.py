@@ -26,7 +26,7 @@ from azure.storage.filedatalake import DataLakeServiceClient
 from engine import run_scan
 from narrator import narrate
 
-APP_VERSION = "2026.06.13.2"
+APP_VERSION = "2026.06.13.3"
 
 app = func.FunctionApp()
 
@@ -132,3 +132,12 @@ def run_scan_http(req: func.HttpRequest) -> func.HttpResponse:
     return func.HttpResponse(
         json.dumps(body, indent=2),
         mimetype="application/json", status_code=200)
+
+@app.route(route="get-digest", auth_level=func.AuthLevel.FUNCTION)
+def get_digest_http(req: func.HttpRequest) -> func.HttpResponse:
+    """Returns the latest digest as plain text. The email workflow
+    calls this instead of holding its own storage credentials."""
+    client = lake_client()
+    fs = client.get_file_system_client("gold")
+    data = fs.get_file_client("digest/latest.txt").download_file().readall()
+    return func.HttpResponse(data, mimetype="text/plain", status_code=200)

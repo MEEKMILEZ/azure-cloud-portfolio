@@ -18,3 +18,8 @@ variable "environment" {
   type        = string
   default     = "dev"
 }
+
+variable "digest_recipient" {
+  description = "Email address that receives the Monday digest"
+  type        = string
+}
