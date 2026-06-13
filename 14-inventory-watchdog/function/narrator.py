@@ -56,12 +56,18 @@ def narrate(findings):
 
     url = (f"{endpoint}/openai/deployments/{deployment}"
            f"/chat/completions?api-version={API_VERSION}")
+    # Reasoning models spend hidden thinking tokens from the same
+    # max_completion_tokens budget as the visible answer. Too small a
+    # budget returns an empty answer with finish_reason length. Budget
+    # generously and keep reasoning effort low, this is a formatting
+    # task, not a math problem.
     body = {
         "messages": [
             {"role": "user",
              "content": PROMPT + json.dumps(compact, default=str)}
         ],
-        "max_completion_tokens": 2000,
+        "max_completion_tokens": 8000,
+        "reasoning_effort": "low",
     }
     resp = requests.post(
         url,
@@ -69,4 +75,11 @@ def narrate(findings):
                  "Content-Type": "application/json"},
         json=body, timeout=120)
     resp.raise_for_status()
-    return resp.json()["choices"][0]["message"]["content"].strip()
+    data = resp.json()
+    choice = data["choices"][0]
+    content = (choice["message"].get("content") or "").strip()
+    if not content:
+        raise RuntimeError(
+            "Narration returned empty content, finish_reason="
+            + str(choice.get("finish_reason")))
+    return content

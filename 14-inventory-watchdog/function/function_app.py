@@ -26,6 +26,8 @@ from azure.storage.filedatalake import DataLakeServiceClient
 from engine import run_scan
 from narrator import narrate
 
+APP_VERSION = "2026.06.13.2"
+
 app = func.FunctionApp()
 
 REQUIRED = {
@@ -122,6 +124,11 @@ def weekly_scan(timer: func.TimerRequest) -> None:
 def run_scan_http(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Inventory Watchdog on demand scan starting")
     findings = execute_scan()
+    body = {
+        "code_version": APP_VERSION,
+        "summary": findings["summary"],
+        "digest_preview": findings["digest"][:200],
+    }
     return func.HttpResponse(
-        json.dumps(findings["summary"], indent=2),
+        json.dumps(body, indent=2),
         mimetype="application/json", status_code=200)
